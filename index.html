@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI SellerPilot - Profit Calculator</title>
+<style>
+body{font-family:Arial,sans-serif;background:#101827;color:white;margin:0;padding:20px}
+main{max-width:480px;margin:auto}
+h1{color:#f5c451}
+label{display:block;margin-top:15px}
+input{width:100%;box-sizing:border-box;padding:12px;margin-top:6px;border-radius:8px;border:1px solid #aaa;font-size:16px}
+button{width:100%;padding:14px;margin-top:22px;background:#f5c451;border:0;border-radius:8px;font-weight:bold;font-size:16px}
+#result{margin-top:20px;padding:16px;background:#263348;border-radius:8px}
+small{color:#bbb}
+</style>
+</head>
+<body>
+<main>
+<h1>AI SellerPilot</h1>
+<p>Free E-commerce Profit Calculator</p>
+<small>Enter your actual marketplace costs in INR.</small>
+<label>Selling Price (INR)<input id="price" type="number" min="0" value="999"></label>
+<label>Product Cost (INR)<input id="cost" type="number" min="0" value="300"></label>
+<label>Packaging (INR)<input id="pack" type="number" min="0" value="40"></label>
+<label>Shipping (INR)<input id="ship" type="number" min="0" value="70"></label>
+<label>Marketplace Fees (INR)<input id="fees" type="number" min="0" value="150"></label>
+<label>Other Costs / Return Buffer (INR)<input id="other" type="number" min="0" value="50"></label>
+<button onclick="calculate()">Calculate Profit</button>
+<div id="result" aria-live="polite">Enter costs and calculate.</div>
+<small>Estimate only. Include applicable taxes, ads and returns in your costs. No marketplace fees are fetched automatically.</small>
+</main>
+<script>
+function calculate(){
+const ids=['price','cost','pack','ship','fees','other'];
+const values=ids.map(id=>Number(document.getElementById(id).value));
+if(values.some(v=>!Number.isFinite(v)||v<0)){
+document.getElementById('result').textContent='Please enter valid non-negative amounts.';
+return;
+}
+const [price,...costs]=values;
+const expenses=costs.reduce((a,b)=>a+b,0);
+const profit=price-expenses;
+const margin=price>0?(profit/price)*100:0;
+document.getElementById('result').textContent='Total Costs: Rs '+expenses.toFixed(2)+' | Net Profit: Rs '+profit.toFixed(2)+' | Margin: '+margin.toFixed(1)+'%';
+}
+</script>
+</body>
+</html>
