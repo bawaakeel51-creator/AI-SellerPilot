@@ -18,7 +18,7 @@ Fees are fixed amounts entered by the seller. Output GST is estimated from tax-i
 
 ## Release status
 
-Version 3.0 is live at https://bawaakeel51-creator.github.io/AI-SellerPilot/ . PR #2 was merged with owner approval; GitHub Pages deployment succeeded. Listing Studio: https://bawaakeel51-creator.github.io/AI-SellerPilot/listing.html .
+Version 4.0 Pilot is live at https://bawaakeel51-creator.github.io/AI-SellerPilot/ . PR #2 established the V3 baseline; PR #5 added the V4 Pilot with owner-approved deployment. Listing Studio: https://bawaakeel51-creator.github.io/AI-SellerPilot/listing.html .
 
 `qa-preview.html` provides same-origin viewport checks at 360, 390, 768 and 1280 pixels. All eight page/width combinations passed horizontal-overflow checks in Chromium. These are CSS viewport tests, not physical-device certification. See `QA.md` for completed browser tests and scope.
 
@@ -33,3 +33,5 @@ Choose a marketplace, enter the product name and verified attributes, add factua
 `workspace.html` and `workspace.js` add manual fee evidence (category, fulfilment, source, observation/effective dates) and competitor observations with observed/estimated labels. Records use schema version 1, with a 100-record limit, optional browser persistence, CSV export, individual removal and delete-all. No source is automatically verified and no fee record silently changes the calculator. The workspace forbids network connections using CSP; notes render as text and CSV guards formula prefixes. Avoid entering secrets or personal data.
 
 The full AI/SaaS roadmap is **not complete**. No provider account, server credentials, approved free-tier hosting or identity service is configured. AI remains disabled; no paid service has been activated. Static V4 Pilot is usable independently of those release gates.
+
+V4 Pilot validation: 19 automated tests passed, and live-browser persistence, deletion, downloads, navigation and 12 responsive viewport checks passed. See QA.md.

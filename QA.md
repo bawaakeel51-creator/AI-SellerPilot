@@ -46,4 +46,13 @@ After user login, authorized browser upload resolved the write blocker without c
 
 The earlier V3 third-party-script statement predates PR #3: the calculator now includes Cloudflare Web Analytics. Its user-facing privacy text and README reflect that fact. Workspace and Listing Studio do not include that beacon.
 
-Browser checks for this release will be recorded after the Pages rollout. Local preview is unreachable from the separate cloud browser. Do not treat automated DOM stubs as real-browser proof.
+Live browser checks completed after Pages rollout (PR #5, commit f5745db):
+- Fee record creation, HTML-like notes rendered literally, opt-in persistence and reload restoration passed.
+- Actual evidence CSV downloaded; delete-all followed by reload returned zero records. Test records were removed.
+- javascript: source rejected; competitor estimate displayed the Estimated label; individual removal passed.
+- Calculator price 1200 returned profit 558 and downloaded CSV. Listing draft generation and TXT download passed; editing disabled stale exports. Cross-tool navigation passed.
+- All 12 page/width combinations (three pages × 360, 390, 768, 1280 CSS pixels) passed horizontal-overflow checks. Narrow workspace and desktop layouts visually inspected.
+- These are Chromium CSS viewport checks, not physical mobile-device certification. Downloads completed; this release did not re-parse downloaded file bytes (serialization is covered by automated tests).
+- Browser logs inspected showed extension metadata errors, not an identified application failure. This is a scoped review, not a security certification.
+
+Local preview was unreachable from the separate cloud browser; browser verification used the deployed release. No real AI backend or account isolation was tested because neither is implemented.
