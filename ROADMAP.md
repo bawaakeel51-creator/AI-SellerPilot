@@ -32,3 +32,17 @@ Working end-to-end AI integration; factuality evaluation; auth and account-isola
 ## Version 3 handoff — 5 November 2026
 
 The static Version 3 release is live, with 13 passing automated tests and completed live-browser/download/responsive checks documented in QA.md. Next development starts with the opt-in pilot and a capped AI backend proof of concept; it must not relabel the current template generator as AI. No paid service has been activated. Keep the working static version available throughout Version 4 development.
+
+## Version 4 Pilot implementation — 6 November 2026
+
+Completed: versioned manual fee evidence, source and effective-date capture; competitor observations with explicit observed/estimated basis; optional local saving, export and deletion; cross-tool navigation. No automatic fee verification, scraping or AI calls.
+
+Still blocked for full V4: deployable provider and free-tier hosting selection, managed identity, server-side secrets, atomic per-user/global quotas, timeout and outage handling, factuality evaluation and authenticated end-to-end generation. Browser-only quotas cannot protect provider spending. Do not advertise real AI until these pass.
+
+### Version 5 candidates (after V4 AI gates)
+- Consented settlement CSV reconciliation with validated accounting fixtures.
+- Isolated account sync and retention controls.
+- Source-backed competitor comparisons using permitted APIs.
+- Paid beta only after demand validation, explicit budget approval and payment/webhook tests.
+
+Rollback: revert the V4 Pilot merge commit and allow the unchanged GitHub Pages deployment to rebuild. Existing calculator and listing data remain page-local; evidence storage uses a separate versioned browser key.
