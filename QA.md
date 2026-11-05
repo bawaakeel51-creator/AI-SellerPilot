@@ -40,6 +40,23 @@ The repository and working branch were readable; main and the working branch ini
 
 After user login, authorized browser upload resolved the write blocker without changing security settings. The GitHub connector itself was not repaired.
 
+## V4 Pilot automated review — 6 November 2026
+
+`node --test test.cjs workspace.test.cjs`: 19 passed, 0 failed. Added checks cover evidence schema, provenance, observed/estimated distinction, executable/credential URL rejection, malformed/future dates, invalid money, CSV injection and persisted-data revalidation. JavaScript syntax and git whitespace checks pass. No provider secrets or model integration added.
+
+The earlier V3 third-party-script statement predates PR #3: the calculator now includes Cloudflare Web Analytics. Its user-facing privacy text and README reflect that fact. Workspace and Listing Studio do not include that beacon.
+
+Live browser checks completed after Pages rollout (PR #5, commit f5745db):
+- Fee record creation, HTML-like notes rendered literally, opt-in persistence and reload restoration passed.
+- Actual evidence CSV downloaded; delete-all followed by reload returned zero records. Test records were removed.
+- javascript: source rejected; competitor estimate displayed the Estimated label; individual removal passed.
+- Calculator price 1200 returned profit 558 and downloaded CSV. Listing draft generation and TXT download passed; editing disabled stale exports. Cross-tool navigation passed.
+- All 12 page/width combinations (three pages × 360, 390, 768, 1280 CSS pixels) passed horizontal-overflow checks. Narrow workspace and desktop layouts visually inspected.
+- These are Chromium CSS viewport checks, not physical mobile-device certification. Downloads completed; this release did not re-parse downloaded file bytes (serialization is covered by automated tests).
+- Browser logs inspected showed extension metadata errors, not an identified application failure. This is a scoped review, not a security certification.
+
+Local preview was unreachable from the separate cloud browser; browser verification used the deployed release. No real AI backend or account isolation was tested because neither is implemented.
+
 ## V4 free workspace beta — 6 November 2026 (India)
 
 - Main inspected at `7c1753e`; no open PRs. Existing feedback and analytics additions preserved.
@@ -51,3 +68,5 @@ After user login, authorized browser upload resolved the write blocker without c
 - Actual downloads were observed in the browser; serializers are covered by automated tests. Browser extension metadata errors were observed, unrelated to app source.
 - No model/API credentials added. No backend or model calls; AI factuality/quota/account-isolation tests are not applicable to this static release and remain release gates for actual AI.
 - Live deployment verification is recorded in the release report after merge; staged checks above do not themselves prove deployment.
+
+Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The original V4 Evidence workspace and schema/storage key were preserved; new calculations/comparisons moved to `research.html` and `research.js`. Combined suite: 26 tests passed. Existing V4 tests remain included in CI. Rollback target for this upgrade is `f9a77b7`.

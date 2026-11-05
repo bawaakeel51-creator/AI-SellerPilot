@@ -33,6 +33,20 @@ Working end-to-end AI integration; factuality evaluation; auth and account-isola
 
 The static Version 3 release is live, with 13 passing automated tests and completed live-browser/download/responsive checks documented in QA.md. Next development starts with the opt-in pilot and a capped AI backend proof of concept; it must not relabel the current template generator as AI. No paid service has been activated. Keep the working static version available throughout Version 4 development.
 
+## Version 4 Pilot implementation — 6 November 2026
+
+Completed: versioned manual fee evidence, source and effective-date capture; competitor observations with explicit observed/estimated basis; optional local saving, export and deletion; cross-tool navigation. No automatic fee verification, scraping or AI calls.
+
+Still blocked for full V4: deployable provider and free-tier hosting selection, managed identity, server-side secrets, atomic per-user/global quotas, timeout and outage handling, factuality evaluation and authenticated end-to-end generation. Browser-only quotas cannot protect provider spending. Do not advertise real AI until these pass.
+
+### Version 5 candidates (after V4 AI gates)
+- Consented settlement CSV reconciliation with validated accounting fixtures.
+- Isolated account sync and retention controls.
+- Source-backed competitor comparisons using permitted APIs.
+- Paid beta only after demand validation, explicit budget approval and payment/webhook tests.
+
+Rollback: revert the V4 Pilot merge commit and allow the unchanged GitHub Pages deployment to rebuild. Existing calculator and listing data remain page-local; evidence storage uses a separate versioned browser key.
+
 ## Version 4 delivery — 6 November 2026 (India)
 
 Delivered as **V4 free workspace beta**:
@@ -58,3 +72,5 @@ Opt-in pilot recruitment and demand validation still require real consenting sel
 5. Pilot evidence dashboard: time saved, corrections, exports and willingness to pay.
 
 Payments, subscriptions and billing remain off until separately approved. These are ideas, not deployed features or revenue guarantees.
+
+Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The original V4 Evidence workspace and schema/storage key were preserved; new calculations/comparisons moved to `research.html` and `research.js`. Combined suite: 26 tests passed. Existing V4 tests remain included in CI. Rollback target for this upgrade is `f9a77b7`.
