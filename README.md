@@ -1,29 +1,38 @@
-# AI SellerPilot 3.0
+# AI SellerPilot 4.0 — free workspace beta
 
-Static seller workspace for Amazon India, Flipkart and Meesho. The existing profit planner also supports labelled estimates for Shopify and other stores.
+Static seller tools for Amazon India, Flipkart and Meesho, with labelled profit estimates for Shopify and other stores.
 
-- `index.html`: profit calculator with editable costs, GST assumptions, returns buffer and CSV export.
-- `listing.html` + `listing.js`: factual template drafts, titles, bullets, descriptions, deduplicated input-based keywords, TXT/CSV export and input validation.
-- `ROADMAP.md`: gated Version 4 AI and SaaS plan.
+- `index.html` / `calculator.js`: profit planner, GST/ITC assumptions, return buffer, break-even and CSV.
+- `listing.html` / `listing.js`: factual template drafts, titles, bullets, descriptions, input-based keywords, TXT/CSV.
+- `workspace.html` / `workspace.js`: versioned manual fee schedules, source/effective/check dates, percentage + fixed fee estimates, observed/estimated competitor prices and comparison, explicit local save/load/delete and CSV export.
+- `qa-preview.html`: same-origin responsive viewport harness.
 
-**No AI model is connected.** No accounts, payments, external requests or automatic marketplace verification. Generated copy must be reviewed. CSV is a review format, not a marketplace bulk-upload template. The 180-character title limit is this tool's conservative drafting choice, not a universal marketplace policy.
+**Real AI is not connected.** V4 ships the no-cost manual workspace portion of the roadmap, not the complete AI/SaaS roadmap. AI allowance is zero; no provider, paid service, account or payment integration was activated. See ROADMAP.md for outstanding V4 gates and V5 ideas.
+
+Live: https://bawaakeel51-creator.github.io/AI-SellerPilot/
 
 ## Run and test
 
-Serve the repository with any static HTTP server, for example `python3 -m http.server 8765`, and open `http://localhost:8765/`. Run dependency-free checks with `node --test test.cjs` (tested with Node 24).
+Serve with `python3 -m http.server 8765`. Open `http://localhost:8765/`. Run `node --test test.cjs` (Node 24). No dependency installation is needed. See QA.md for actual test evidence.
+
+## Data and security
+
+Calculations and product/research inputs are processed locally. Research records are not persisted until **Save on this device** is clicked; **Load device copy** explicitly restores them. Clearing the tab does not delete the saved copy. **Delete device copy** deletes only this app's research storage key. CSV is a review/backup format; import and cloud sync are not implemented. There is a 100-record limit. Do not store secrets or personal information, especially on shared devices.
+
+The existing profit-page Cloudflare analytics integration remains enabled and is disclosed. Feedback links open Google Forms. No research URL is fetched. Sources remain user-supplied and unverified. A Cloudflare analytics site identifier is public configuration, not an AI API key.
+
+Inputs and restored records are validated, output uses text rendering, CSV formula prefixes are neutralized, URLs require HTTPS without embedded credentials, and page CSP blocks inline scripts, objects, base URL changes and form submissions. These checks do not certify marketplace compliance or factual accuracy.
 
 ## Profit assumptions
 
-Fees are fixed amounts entered by the seller. Output GST is estimated from tax-inclusive revenue; eligible ITC reduces net tax only to zero. Purchase/other cost amounts must be entered consistently with the user's chosen accounting approach. The returns buffer covers only additional expected loss, not full refund economics. Break-even assumes fixed entered costs and uses the same tax model as the profit calculation; percentage-based fees need manual re-entry at a different price. This is a planning estimate, not a settlement or tax filing calculation.
+Marketplace selection only labels the estimate. Fees are seller-entered fixed amounts; research fee records are illustrative percentage-plus-fixed calculations, not a complete marketplace fee engine. Recalculate fees for the actual price, slab, category and fulfilment mode. Research estimates exclude GST and shipping.
 
-## Release status
+Output GST is estimated from tax-inclusive revenue; eligible ITC reduces net tax only to zero. Purchase/other costs must be entered consistently with the user's accounting approach. The returns buffer covers additional expected loss, not full refund economics. Break-even uses fixed entered costs and the same tax model; percentage-based fees require manual re-entry at another price. This is a planning estimate, not a settlement or tax filing calculation.
 
-Version 3.0 is live at https://bawaakeel51-creator.github.io/AI-SellerPilot/ . PR #2 was merged with owner approval; GitHub Pages deployment succeeded. Listing Studio: https://bawaakeel51-creator.github.io/AI-SellerPilot/listing.html .
+## Listing Studio
 
-`qa-preview.html` provides same-origin viewport checks at 360, 390, 768 and 1280 pixels. All eight page/width combinations passed horizontal-overflow checks in Chromium. These are CSS viewport tests, not physical-device certification. See `QA.md` for completed browser tests and scope.
+Enter verified product facts, confirm, generate and review before downloading. Editing inputs disables stale exports. No product data survives reload. The 180-character title limit is this tool's drafting limit, not a universal marketplace rule. CSV is not a marketplace bulk-upload template.
 
-For future releases, use a reviewed branch/PR, run `node --test test.cjs`, verify Pages deployment and smoke-test both pages and downloads. Revert the release commit if verification fails. Preserve the Pages source configuration.
+## Releases
 
-## Using Listing Studio
-
-Choose a marketplace, enter the product name and verified attributes, add factual feature lines and relevant search terms, confirm the facts, then generate. Review the draft before downloading TXT or CSV. Editing inputs disables old exports until a fresh draft is generated. Clear resets the form. No product data is saved across reloads.
+Use a reviewed PR; run tests and browser checks, merge after approval, verify Pages deployment and smoke-test all three pages. Preserve the existing Pages source configuration. Roll back by reverting the release merge; the previous V3 main commit was `7c1753e`. V4 adds one optional browser-storage key; V3 ignores it.

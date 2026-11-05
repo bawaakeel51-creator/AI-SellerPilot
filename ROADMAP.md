@@ -32,3 +32,29 @@ Working end-to-end AI integration; factuality evaluation; auth and account-isola
 ## Version 3 handoff — 5 November 2026
 
 The static Version 3 release is live, with 13 passing automated tests and completed live-browser/download/responsive checks documented in QA.md. Next development starts with the opt-in pilot and a capped AI backend proof of concept; it must not relabel the current template generator as AI. No paid service has been activated. Keep the working static version available throughout Version 4 development.
+
+## Version 4 delivery — 6 November 2026 (India)
+
+Delivered as **V4 free workspace beta**:
+- Manual fee records with marketplace/category/fulfilment, source, version, effective/check dates and percentage-plus-fixed estimates.
+- Manual competitor observations with public source URL, date, observed/estimated label and price comparison. No scraping or inferred sales.
+- Explicit device save/load/delete, bounded/validated records and CSV export.
+- Security hardening, regression tests and three-page responsive/browser QA.
+
+### V4 gates still pending — not silently considered complete
+
+Real AI and the AI/SaaS release gates above are not complete. The repository has no backend deployment, configured provider or authenticated users. No keys were requested, written or exposed and no paid service was enabled. GitHub Pages hosts the static frontend only. Do not advertise this release as a real AI generator.
+
+Before enabling any model: select and verify a genuinely free provider configuration with no paid fallback; deploy a separate authenticated backend; keep secrets server-side; enforce atomic durable per-user and global quotas before each call; bound request/output size, concurrency and timeouts; fail closed on quota-store failures; validate structured output and test unsupported claims, prompt injection, outages and account isolation. Display an actual allowance only after these gates pass. Current AI allowance is **0**.
+
+Opt-in pilot recruitment and demand validation still require real consenting sellers. Existing feedback links are preserved; no outreach messages were sent by this release.
+
+## Version 5 candidate ideas (after V4 gates)
+
+1. Secure capped AI listing pilot with human-reviewed factuality evaluation.
+2. Consent-based settlement CSV imports, deduction reconciliation and tax-model review.
+3. Authorized marketplace fee data, effective-date/slab fixtures and expiry reminders.
+4. Record editing/import, secure account sync, retention and account export/delete.
+5. Pilot evidence dashboard: time saved, corrections, exports and willingness to pay.
+
+Payments, subscriptions and billing remain off until separately approved. These are ideas, not deployed features or revenue guarantees.
