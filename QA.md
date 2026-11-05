@@ -16,10 +16,26 @@ Default calculator: expenses ₹642, profit ₹357 per order, ₹3,570 for 10 un
 - Listing edits invalidate old exports; long inputs fail visibly instead of silent truncation.
 - CSV cells neutralize formula-leading values; text rendering does not interpret HTML.
 
-## Remaining manual checks before release
+## Completed live-browser checks
 
-Browser-rendered desktop/mobile layout, keyboard navigation, actual browser download files and navigation between pages remain to be verified. The remote browser cannot reach this workspace's local preview server. Automated DOM lifecycle checks use a small test double, not a full browser engine.
+- PR #2 merged with owner approval; Pages deployment succeeded. The original calculator was preserved.
+- Amazon India, Flipkart and Meesho generated factual drafts; switching marketplaces invalidated stale exports.
+- Blank name, missing confirmation and fractional pack quantity produced visible validation errors. Clear reset the form and disabled exports.
+- Calculator: price 1200 gave profit 558; zero units were rejected; reset restored defaults; ITC 500 did not reduce break-even below fixed costs of 642.
+- Actual calculator CSV, listing TXT and listing CSV were downloaded in Chromium and parsed locally. Profit, marketplace, facts, CSV column count and deduplicated keywords matched expectations.
+- Navigation between calculator and studio worked. Keyboard Tab moved from product name to brand.
+- Mobile Listing Studio generated a draft at a 360px frame width, enabled exports and retained a layout without horizontal overflow.
+- Both pages passed horizontal-overflow checks at frame widths 360, 390, 768 and 1280px (usable content widths 345, 375, 753 and 1265px because of scrollbar space). Desktop and narrow-width visual layouts were inspected.
+- No application error was identified during these interactions. Browser extension metadata errors were separate from the site.
+
+## Security and limits
+
+Product copy is rendered with textContent; the listing CSV guards formula-leading cells. There are no backend credentials, model keys, account/payment integration or third-party application scripts in this version. Automated tests cover HTML-as-text, CSV quoting and invalid inputs. This is a focused code and functional review, not a penetration-test certification.
+
+Tests used Chromium with CSS-width frames, not physical Android/iOS devices or every browser. No software is guaranteed bug-free. Product claims, keyword relevance and marketplace fees are not automatically verified. Exports are review files, not marketplace bulk-import templates. Real AI remains Version 4 work.
 
 ## Access diagnosis
 
 The repository and working branch were readable; main and the working branch initially pointed to 89c19e026cb371047032c2daf868603b5eeab0e1. Repository metadata exposed push/admin rights for the user, but creating listing.html through the connector returned 403 Resource not accessible by integration. The installations query returned an empty list. This establishes a connector write-access failure; exact app permission configuration cannot be determined from these responses. No security settings were changed. The fallback cloud browser showed GitHub signed out.
+
+After user login, authorized browser upload resolved the write blocker without changing security settings. The GitHub connector itself was not repaired.

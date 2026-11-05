@@ -28,3 +28,7 @@ Start with a capped pilot and no commitments. Set a spend cap the owner can affo
 
 ## Release gates
 Working end-to-end AI integration; factuality evaluation; auth and account-isolation tests; secret scanning; verified current provider costs; explicit budget approval; and a rollback plan. AI and paid features stay disabled until those gates pass.
+
+## Version 3 handoff — 5 November 2026
+
+The static Version 3 release is live, with 13 passing automated tests and completed live-browser/download/responsive checks documented in QA.md. Next development starts with the opt-in pilot and a capped AI backend proof of concept; it must not relabel the current template generator as AI. No paid service has been activated. Keep the working static version available throughout Version 4 development.
