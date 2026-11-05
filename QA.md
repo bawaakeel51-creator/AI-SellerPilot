@@ -39,3 +39,11 @@ Tests used Chromium with CSS-width frames, not physical Android/iOS devices or e
 The repository and working branch were readable; main and the working branch initially pointed to 89c19e026cb371047032c2daf868603b5eeab0e1. Repository metadata exposed push/admin rights for the user, but creating listing.html through the connector returned 403 Resource not accessible by integration. The installations query returned an empty list. This establishes a connector write-access failure; exact app permission configuration cannot be determined from these responses. No security settings were changed. The fallback cloud browser showed GitHub signed out.
 
 After user login, authorized browser upload resolved the write blocker without changing security settings. The GitHub connector itself was not repaired.
+
+## V4 Pilot automated review — 6 November 2026
+
+`node --test test.cjs workspace.test.cjs`: 19 passed, 0 failed. Added checks cover evidence schema, provenance, observed/estimated distinction, executable/credential URL rejection, malformed/future dates, invalid money, CSV injection and persisted-data revalidation. JavaScript syntax and git whitespace checks pass. No provider secrets or model integration added.
+
+The earlier V3 third-party-script statement predates PR #3: the calculator now includes Cloudflare Web Analytics. Its user-facing privacy text and README reflect that fact. Workspace and Listing Studio do not include that beacon.
+
+Browser checks for this release will be recorded after the Pages rollout. Local preview is unreachable from the separate cloud browser. Do not treat automated DOM stubs as real-browser proof.
