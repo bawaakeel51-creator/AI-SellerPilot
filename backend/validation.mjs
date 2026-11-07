@@ -30,6 +30,23 @@ export function validateListingRequest(input) {
   // Product facts are untrusted data. Do not execute instructions embedded in them.
   return Object.freeze({marketplace: input.marketplace, facts: Object.freeze(facts)});
 }
+// Conservative risk detection, not factuality certification; human approval remains mandatory.
+const HIGH_RISK_CLAIMS = [
+  /\b(?:waterproof|water-resistant|hypoallergenic|anti-tarnish|nickel-free|lead-free)\b/gi,
+  /\b(?:certified|certification|fda-approved|bis-certified|iso-certified|clinically proven)\b/gi,
+  /\b(?:lifetime warranty|warranty|guaranteed|100% genuine|authentic)\b/gi,
+  /\b(?:18k|22k|24k|316l|304)\b/gi,
+  /\b(?:made in india|made in usa|imported from)\b/gi,
+  /\b(?:free shipping|free returns|best seller|top rated|five-star)\b/gi
+];
+function riskPhrases(text) {
+  const hits = [];
+  for (const pattern of HIGH_RISK_CLAIMS) {
+    pattern.lastIndex = 0;
+    for (const match of text.matchAll(pattern)) hits.push(match[0]);
+  }
+  return hits;
+}
 export function validateModelDraft(draft, request) {
   if (!plainObject(draft) || Object.keys(draft).some(k => !['title','bullets','description','claims'].includes(k))) throw new TypeError('Invalid model response');
   const title = cleanText(draft.title, 180);
@@ -39,7 +56,8 @@ export function validateModelDraft(draft, request) {
   if (!Array.isArray(draft.claims) || draft.claims.length > 20) throw new TypeError('Invalid claims');
   const claims = draft.claims.map(v => cleanText(v, 200));
   const source = Object.values(request.facts).flat().map(v => String(v).toLowerCase());
-  const unsupportedClaims = claims.filter(c => !source.some(v => v.includes(c.toLowerCase())));
+  const supported = c => source.some(v => v.includes(c.toLowerCase()));
+  const unsupportedClaims = [...new Set([...claims, ...riskPhrases([title, description, ...bullets].join(' '))].filter(c => !supported(c)))];
   return {title, description, bullets, claims, unsupportedClaims, requiresHumanReview: true};
 }
 export function detectInstructionLikeFacts(request) {
