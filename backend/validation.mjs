@@ -10,7 +10,7 @@ function cleanText(v, limit) {
 }
 export function validateListingRequest(input) {
   if (!plainObject(input)) throw new TypeError('Invalid request');
-  if (Buffer.byteLength(JSON.stringify(input), 'utf8') > MAX_BODY_BYTES) throw new RangeError('Request too large');
+  if (new TextEncoder().encode(JSON.stringify(input)).byteLength > MAX_BODY_BYTES) throw new RangeError('Request too large');
   if (Object.keys(input).some(k => !['marketplace', 'facts'].includes(k))) throw new TypeError('Unknown request field');
   if (!MARKETPLACES.includes(input.marketplace)) throw new TypeError('Invalid marketplace');
   if (!plainObject(input.facts) || Object.keys(input.facts).some(k => !FACT_KEYS.includes(k))) throw new TypeError('Unknown product fact');
