@@ -16,3 +16,16 @@ test('flags unsupported claims for human review',()=>{
  assert.equal(result.requiresHumanReview,true);
 });
 test('rejects malformed model output',()=>assert.throws(()=>validateModelDraft({title:'ring',bullets:[],description:'ring',claims:'safe'},validateListingRequest(base))));
+
+test('flags unsupported waterproof claim in title even when claims array is empty',()=>{
+ const draft=validateModelDraft({title:'Waterproof steel ring',description:'Steel ring',bullets:['Simple ring'],claims:[]},validateListingRequest(base));
+ assert.deepEqual(draft.unsupportedClaims,['Waterproof']);
+});
+test('flags unsupported warranty and certification in description and bullets',()=>{
+ const draft=validateModelDraft({title:'Steel ring',description:'Lifetime warranty included',bullets:['ISO-certified quality'],claims:[]},validateListingRequest(base));
+ assert.deepEqual(draft.unsupportedClaims,['ISO-certified','Lifetime warranty']);
+});
+test('does not flag confirmed 316L material',()=>{
+ const draft=validateModelDraft({title:'316L steel ring',description:'316L stainless steel ring',bullets:['Steel ring'],claims:[]},validateListingRequest(base));
+ assert.deepEqual(draft.unsupportedClaims,[]);
+});
