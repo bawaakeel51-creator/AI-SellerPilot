@@ -1,4 +1,5 @@
 import { validateListingRequest, validateModelDraft, detectInstructionLikeFacts } from './validation.mjs';
+import { googleSession, handleGoogleAuth, checkCsrf } from './google-session.mjs';
 
 const MAX_BODY_BYTES = 8192;
 async function boundedText(message, limit) {
@@ -160,12 +161,18 @@ export class QuotaGate {
 export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
+    const google = env.AUTH_MODE === 'google';
+    if (google) {
+      const auth = await handleGoogleAuth(request, env);
+      if (auth) return auth;
+      if (['/login.html', '/login.js'].includes(path) && ['GET', 'HEAD'].includes(request.method) && env.ASSETS) return env.ASSETS.fetch(request);
+    }
     if ((request.method === 'GET' || request.method === 'HEAD') &&
         (path === '/studio' || path.startsWith('/studio/')) && env.ASSETS) {
       // Access must cover the entire Worker. JWT verification also protects the
       // preview itself when Access is accidentally removed from the dashboard.
-      try { await verifyAccess(request.headers.get('cf-access-jwt-assertion'), env); }
-      catch { return fail(request, env, 'unauthorized', 401); }
+      try { if (google) await googleSession(request, env); else await verifyAccess(request.headers.get('cf-access-jwt-assertion'), env); }
+      catch { return google ? new Response(null, { status: 302, headers: { location: '/login.html', 'cache-control': 'no-store' } }) : fail(request, env, 'unauthorized', 401); }
       if (path === '/studio') return Response.redirect(new URL('/studio/', request.url), 302);
       return env.ASSETS.fetch(request);
     }
@@ -179,10 +186,13 @@ export default {
       return fail(request, env, 'ai_disabled', 503);
     }
     if (!env.ALLOWED_ORIGIN || request.headers.get('origin') !== env.ALLOWED_ORIGIN) return fail(request, env, 'origin_denied', 403);
-    const token = request.headers.get('cf-access-jwt-assertion');
-    if (!token) return fail(request, env, 'unauthorized', 401);
     let user;
-    try { user = await verifyAccess(token, env); } catch { return fail(request, env, 'unauthorized', 401); }
+    try {
+      if (google) {
+        if (!checkCsrf(request)) return fail(request, env, 'unauthorized', 403);
+        user = await googleSession(request, env);
+      } else user = await verifyAccess(request.headers.get('cf-access-jwt-assertion'), env);
+    } catch { return fail(request, env, 'unauthorized', 401); }
     if (Number(request.headers.get('content-length') || 0) > MAX_BODY_BYTES) return fail(request, env, 'request_too_large', 413);
     let parsed;
     try {

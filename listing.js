@@ -57,7 +57,16 @@ async function requestAi(input, apiUrl, fetchImpl) {
  const payload = toApiRequest(input);
  let res;
  try {
-  res = await fetchImpl(endpoint.href, {method:'POST',mode:'cors',credentials:'include',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
+  const headers = {'content-type':'application/json'};
+  if (typeof window !== 'undefined' && window.SELLERPILOT_AI?.authMode === 'google') {
+   if (endpoint.origin !== window.location.origin) throw Error('Google session requires the private workspace.');
+   const sessionResponse = await fetchImpl(new URL('/auth/session', endpoint).href, {credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(5000)});
+   if (!sessionResponse.ok) throw Error('Sign in again to continue.');
+   const session = await sessionResponse.json();
+   if (!/^[a-f0-9]{64}$/.test(session.csrf || '')) throw Error('Invalid session.');
+   headers['x-csrf-token'] = session.csrf;
+  }
+  res = await fetchImpl(endpoint.href, {method:'POST',mode:'cors',credentials:'include',redirect:'manual',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
  } catch { throw Error(`Could not reach the AI service. Sign in at ${endpoint.origin} in this browser, then try again. The template draft still works.`); }
  if (res.type === 'opaqueredirect') throw Error(`Sign in is required. Open ${endpoint.origin} in this browser, sign in, then try again.`);
  let body = null;

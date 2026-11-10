@@ -92,3 +92,10 @@ Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The
 - Candidate GEMINI_MODEL configured as gemini-3.6-flash from Google's official free-tier pricing checked 2026-11-10. AI_ENABLED remains false; no provider call or claim of model/key validation.
 - Additional workerd/Miniflare SQLite runtime check passes: 10 concurrent reservations allow exactly 2 for one user, isolate a second user, enforce the global cap, and return ai_disabled without provider calls. This is a local real-runtime check, not authenticated production concurrency verification.
 - Live private studio URL rejects unauthenticated access with unauthorized; no studio assets or secrets returned.
+
+## PR #13 Google session integration — 2026-11-10
+
+- 88 automated tests pass, including nonce/CSRF rejection, signature/claims checks, owner allowlist, secure cookie attributes/expiry, logout, rate limiting, body-size bounds and Google identity reaching quotas/provider mocks. All previous tools regressions pass.
+- Wrangler 4.159.0 dry-run bundles the Google login and protected studio; SQLite quota and existing 5/60s limiter settings are preserved. No credential is in generated assets.
+- Browser connection is verified in Chrome. The TXT download button click succeeds, but the browser download-event observation timed out; actual file completion is not claimed. CSV contents/lifecycle are covered by automated tests.
+- OAuth app/client setup and live Google/Gemini tests remain pending. AI_ENABLED=false; no public provider enablement or billing.

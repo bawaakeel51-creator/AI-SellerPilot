@@ -30,6 +30,9 @@ run_worker_first = true
 # No public routes or custom domains configured.
 [vars]
 AI_ENABLED = "false"
+AUTH_MODE = "google"
+# GOOGLE_CLIENT_ID, GOOGLE_ALLOWED_EMAILS and ALLOWED_ORIGIN are dashboard vars.
+# Missing configuration fails closed. Use owner-only approved emails initially.
 PER_USER_DAILY_LIMIT = "2"
 GLOBAL_DAILY_LIMIT = "20"
 MIN_INTERVAL_MS = "5000"
