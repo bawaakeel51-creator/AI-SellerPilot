@@ -165,7 +165,7 @@ export default {
     if (google) {
       const auth = await handleGoogleAuth(request, env);
       if (auth) return auth;
-      if (['/login.html', '/login.js'].includes(path) && ['GET', 'HEAD'].includes(request.method) && env.ASSETS) return env.ASSETS.fetch(request);
+      if (['/login', '/login.html', '/login.js'].includes(path) && ['GET', 'HEAD'].includes(request.method) && env.ASSETS) return env.ASSETS.fetch(request);
     }
     if ((request.method === 'GET' || request.method === 'HEAD') &&
         (path === '/studio' || path.startsWith('/studio/')) && env.ASSETS) {
