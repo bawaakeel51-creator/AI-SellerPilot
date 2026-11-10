@@ -29,17 +29,70 @@ function buildDraft(input) {
  const description = [get('name'),get('category')?`Category: ${get('category')}`:'',...facts,...features].filter(Boolean).join('\n');
  return {market:input.market,title,bullets:displayBullets,description,keywords};
 }
-function toTXT(d){return [`Marketplace: ${d.market}`,`Title: ${d.title}`,'','Bullet points:',...d.bullets.map(s=>`- ${s}`),'','Description:',d.description,'',`Keywords: ${d.keywords}`,'','Template draft. Review all facts and category requirements before publishing.'].join('\n');}
+function toTXT(d){return [...(d.ai?['AI-assisted draft (Gemini). NOT verified: check every claim before publishing.',...(d.unsupportedClaims&&d.unsupportedClaims.length?[`Unsupported claims to remove or verify: ${d.unsupportedClaims.join(', ')}`]:[]),'']:[]),`Marketplace: ${d.market}`,`Title: ${d.title}`,'','Bullet points:',...d.bullets.map(s=>`- ${s}`),'','Description:',d.description,'',`Keywords: ${d.keywords}`,'',d.ai?'AI-assisted draft. Review all facts and category requirements before publishing.':'Template draft. Review all facts and category requirements before publishing.'].join('\n');}
 function csvCell(value){let s=String(value);if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';}
 function toCSV(d){return '\ufeff'+[['Marketplace','Title','Bullet points','Description','Keywords'],[d.market,d.title,d.bullets.join('\n'),d.description,d.keywords]].map(row=>row.map(csvCell).join(',')).join('\r\n');}
-if(typeof module!=='undefined')module.exports={buildDraft,toTXT,toCSV,csvCell};
+
+const API_MARKETS = {'Amazon India':'amazon_in','Flipkart':'flipkart','Meesho':'meesho'};
+function toApiRequest(input) {
+ if (!Object.hasOwn(API_MARKETS,input.market)) throw Error('Choose a supported marketplace.');
+ buildDraft(input); // reuse the same validation and confirmation checks
+ const get = key => clean(input[key]);
+ const facts = {name:get('name')};
+ for (const [apiKey,key] of [['brand','brand'],['material','material'],['color','colour'],['size','size']]) if (get(key)) facts[apiKey] = get(key);
+ if (get('quantity')) { const q = Number(get('quantity')); if (q>1000) throw Error('AI generation supports pack quantity up to 1000.'); facts.packQuantity = q; }
+ const features = String(input.features || '').split(/\r?\n/).map(clean).filter(Boolean);
+ if (features.some(f=>f.length>160)) throw Error('Each feature line must be 160 characters or fewer for AI generation.');
+ if (features.length) facts.features = features;
+ return {marketplace:API_MARKETS[input.market],facts};
+}
+function fromApiResponse(body, market, keywords) {
+ const d = body && body.draft;
+ if (!body || body.reviewRequired !== true || !d || typeof d.title !== 'string' || typeof d.description !== 'string' || !Array.isArray(d.bullets) || !d.bullets.every(b=>typeof b==='string') || !Array.isArray(d.unsupportedClaims)) throw Error('The AI service returned an unexpected response. Use the template draft.');
+ return {market,title:d.title,bullets:d.bullets,description:d.description,keywords:keywords||'',ai:true,unsupportedClaims:d.unsupportedClaims.filter(c=>typeof c==='string')};
+}
+async function requestAi(input, apiUrl, fetchImpl) {
+ const endpoint = new URL('/v1/listings/generate', apiUrl);
+ if (endpoint.protocol !== 'https:') throw Error('AI service must use HTTPS.');
+ const payload = toApiRequest(input);
+ let res;
+ try {
+  res = await fetchImpl(endpoint.href, {method:'POST',mode:'cors',credentials:'include',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
+ } catch { throw Error(`Could not reach the AI service. Sign in at ${endpoint.origin} in this browser, then try again. The template draft still works.`); }
+ if (res.type === 'opaqueredirect') throw Error(`Sign in is required. Open ${endpoint.origin} in this browser, sign in, then try again.`);
+ let body = null;
+ try { body = await res.json(); } catch { /* fall through to generic message */ }
+ if (!res.ok) throw Error(body && typeof body.message === 'string' ? body.message : `AI service error (${res.status}). Use the template draft.`);
+ return fromApiResponse(body, input.market, buildDraft(input).keywords);
+}
+if(typeof module!=='undefined')module.exports={buildDraft,toTXT,toCSV,csvCell,toApiRequest,fromApiResponse,requestAi};
 if(typeof document==='undefined')return;
-const $ = id=>document.getElementById(id);let draft=null;
-function invalidate(message='Inputs changed. Generate a fresh draft.'){draft=null;$('txt').disabled=$('csv').disabled=true;$('result').textContent='Your draft will appear here.';$('counts').textContent='';$('status').textContent=message;}
+const $ = id=>document.getElementById(id);let draft=null;let revision=0;
+function invalidate(message='Inputs changed. Generate a fresh draft.'){revision++;draft=null;$('txt').disabled=$('csv').disabled=true;$('result').textContent='Your draft will appear here.';$('counts').textContent='';$('status').textContent=message;}
 $('listing-form').addEventListener('input',()=>invalidate());
 $('market').addEventListener('change',()=>{invalidate();$('guidance').textContent=markets[$('market').value];});
 $('listing-form').addEventListener('reset',()=>{invalidate('Form cleared.');$('guidance').textContent=markets['Amazon India'];});
-$('listing-form').addEventListener('submit',event=>{event.preventDefault();try{const input=Object.fromEntries(['market',...Object.keys(limits),'quantity'].map(id=>[id,$(id).value]));input.confirmed=$('confirmed').checked;draft=buildDraft(input);$('result').textContent=toTXT(draft);$('guidance').textContent=markets[draft.market];$('counts').textContent=`Title: ${draft.title.length}/180 characters · ${draft.bullets.length} bullets · Keywords: ${new TextEncoder().encode(draft.keywords).length} UTF-8 bytes`;$('txt').disabled=$('csv').disabled=false;$('status').textContent='Draft ready. Check every claim before publishing.';}catch(error){invalidate(error.message);}});
+$('listing-form').addEventListener('submit',event=>{event.preventDefault();revision++;try{const input=Object.fromEntries(['market',...Object.keys(limits),'quantity'].map(id=>[id,$(id).value]));input.confirmed=$('confirmed').checked;draft=buildDraft(input);$('result').textContent=toTXT(draft);$('guidance').textContent=markets[draft.market];$('counts').textContent=`Title: ${draft.title.length}/180 characters · ${draft.bullets.length} bullets · Keywords: ${new TextEncoder().encode(draft.keywords).length} UTF-8 bytes`;$('txt').disabled=$('csv').disabled=false;$('status').textContent='Draft ready. Check every claim before publishing.';}catch(error){invalidate(error.message);}});
 function download(kind){if(!draft)return;const url=URL.createObjectURL(new Blob([kind==='csv'?toCSV(draft):toTXT(draft)],{type:kind==='csv'?'text/csv;charset=utf-8':'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`sellerpilot-${draft.market.toLowerCase().replaceAll(' ','-')}-listing.${kind}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('txt').onclick=()=>download('txt');$('csv').onclick=()=>download('csv');
+const aiUrl = (typeof window!=='undefined' && window.SELLERPILOT_AI && window.SELLERPILOT_AI.apiUrl) || '';
+if (aiUrl && $('ai')) {
+ $('ai').hidden = false;
+ $('ai').addEventListener('click', async () => {
+  invalidate('Contacting AI service…');
+  const requestRevision = revision;
+  const button = $('ai'); button.disabled = true; $('status').textContent = 'Contacting AI service…';
+  try {
+   const input = Object.fromEntries(['market',...Object.keys(limits),'quantity'].map(id=>[id,$(id).value])); input.confirmed = $('confirmed').checked;
+   const responseDraft = await requestAi(input, aiUrl, (...args)=>fetch(...args));
+   if (revision !== requestRevision) return;
+   draft = responseDraft;
+   $('result').textContent = toTXT(draft); $('guidance').textContent = markets[draft.market];
+   $('counts').textContent = `Title: ${draft.title.length} characters · ${draft.bullets.length} bullets · AI-assisted, review required`;
+   $('txt').disabled = $('csv').disabled = false;
+   $('status').textContent = draft.unsupportedClaims.length ? 'AI draft ready. Unsupported claims were flagged; remove or verify them.' : 'AI draft ready. Check every claim before publishing.';
+  } catch (error) { if (revision === requestRevision) $('status').textContent = error.message; } finally { button.disabled = false; }
+ });
+}
+
 })();
