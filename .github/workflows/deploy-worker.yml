@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify all regression tests
-        run: node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/validation.test.mjs backend/worker.test.mjs
+        run: node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/*.test.mjs
       - run: git diff --check
       - name: Require deployment credential
         env:
