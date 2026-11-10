@@ -269,3 +269,18 @@ test('non-JSON content type cannot consume quota', async () => {
   assert.equal(res.status, 400);
   assert.equal(gate.data.size, 0);
 });
+
+test('private studio assets fail closed without a verified Access JWT', async () => {
+  const { env } = setup();
+  let served = 0;
+  env.ASSETS = { fetch: async () => { served++; return new Response('studio'); } };
+  const base = 'https://api.example.workers.dev/studio/';
+  assert.equal((await worker.fetch(new Request(base), env)).status, 401);
+  const headers = { 'cf-access-jwt-assertion': await token() };
+  assert.equal(await (await worker.fetch(new Request(base, { headers }), env)).text(), 'studio');
+  assert.equal(served, 1);
+  const redirect = await worker.fetch(new Request(base.slice(0,-1), { headers }), env);
+  assert.equal(redirect.status, 302);
+  assert.equal(redirect.headers.get('location'), base);
+  assert.equal((await worker.fetch(new Request(base, { method: 'POST', headers }), env)).status, 404);
+});

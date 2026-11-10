@@ -159,7 +159,17 @@ export class QuotaGate {
 
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname !== '/v1/listings/generate') return fail(request, env, 'not_found', 404);
+    const path = new URL(request.url).pathname;
+    if ((request.method === 'GET' || request.method === 'HEAD') &&
+        (path === '/studio' || path.startsWith('/studio/')) && env.ASSETS) {
+      // Access must cover the entire Worker. JWT verification also protects the
+      // preview itself when Access is accidentally removed from the dashboard.
+      try { await verifyAccess(request.headers.get('cf-access-jwt-assertion'), env); }
+      catch { return fail(request, env, 'unauthorized', 401); }
+      if (path === '/studio') return Response.redirect(new URL('/studio/', request.url), 302);
+      return env.ASSETS.fetch(request);
+    }
+    if (path !== '/v1/listings/generate') return fail(request, env, 'not_found', 404);
     if (request.method === 'OPTIONS') {
       const allowed = env.ALLOWED_ORIGIN && request.headers.get('origin') === env.ALLOWED_ORIGIN;
       return new Response(null, { status: allowed ? 204 : 403, headers: corsHeaders(request, env) });

@@ -53,3 +53,11 @@ The prior V4 Pilot (PRs #5/#6) arrived on main during this session. This upgrade
 4. Set `AI_ENABLED=true`, put the Worker origin in `ai-config.js` (`apiUrl`) and in the `connect-src` of `listing.html`'s CSP, update the "No AI model connected" copy and footer text, then test with a signed-in account and a free-tier key before announcing.
 
 Never commit keys. AI output is labelled only when a real request succeeds.
+
+## Private AI activation (preparation only)
+
+The optional private preview runs at the Worker's `/studio/` path. Its page, scripts and API share one origin so Cloudflare Access sessions do not rely on third-party cookies. The Worker verifies the Access JWT before serving any preview asset. The public GitHub Pages tools and empty public `apiUrl` are preserved.
+
+`backend/build-studio.mjs` generates preview assets from the existing Listing Studio, with provider privacy disclosure, human-review guidance and the default 2/user/day, 20/global/day and 5-second request interval. Run Wrangler from `backend/`. `.github/workflows/deploy-worker.yml` provides a manual main-only deployment after all regression tests; it forces AI disabled. It requires a GitHub Actions secret named `CLOUDFLARE_API_TOKEN`, restricted to the `ai-sellerpilot-v4-api` Worker. Do not put the token or Gemini key in source, logs or chat. Keep the existing Gemini secret in Cloudflare.
+
+Before enabling generation, verify the Workers Free subscription, an unbilled Gemini free-tier project/model, the Access application and owner-only policy, issuer/audience/origin settings, real authentication, Durable Object limits and a successful reviewed provider response. AI activation and the public link remain pending until these live gates pass. No activation or deployment is implied by this preparation.

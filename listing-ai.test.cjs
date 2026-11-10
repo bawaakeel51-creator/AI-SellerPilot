@@ -87,3 +87,14 @@ test('editing or generating a template while AI is pending discards stale succes
     assert.equal(nodes.ai.disabled, false);
   }
 });
+
+test('private studio build keeps AI on its own origin and preserves public tools', () => {
+  require('node:child_process').execFileSync(process.execPath, ['backend/build-studio.mjs']);
+  const html = fs.readFileSync('backend/public/studio/index.html', 'utf8');
+  assert.match(html, /connect-src 'self'/);
+  assert.match(html, /Private AI preview/);
+  assert.match(html, /Do not enter confidential or personal data/);
+  for (const page of ['index.html','workspace.html','research.html']) assert.ok(html.includes('https://bawaakeel51-creator.github.io/AI-SellerPilot/'+page));
+  assert.match(fs.readFileSync('backend/public/studio/ai-config.js', 'utf8'), /window.location.origin/);
+  assert.match(fs.readFileSync('ai-config.js','utf8'), /apiUrl: ''/);
+});

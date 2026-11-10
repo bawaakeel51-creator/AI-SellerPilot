@@ -2,6 +2,14 @@ name = "ai-sellerpilot-v4-api"
 main = "worker.mjs"
 compatibility_date = "2026-11-01"
 
+[build]
+command = "node build-studio.mjs"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
 # Deploy only after Access, Gemini free-tier configuration and owner approval.
 # No public routes or custom domains configured.
 [vars]
