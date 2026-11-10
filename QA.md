@@ -108,3 +108,10 @@ This checkpoint supersedes the old Access/OAuth/download/mobile pending notes ab
 The existing 88-test CI, Gitleaks, syntax/diff checks and local real-workerd/SQLite quota evidence remain valid; no product code changed in this documentation pass and completed tests were not repeated. Runtime settings, encrypted Gemini secret, quotas and rate limiter were inspected/preserved; AI_ENABLED remains false. Current main/deployment evidence and precise limitations are in [V4-RELEASE.md](V4-RELEASE.md).
 
 Real Gemini generation and actual provider-error handling remain release blockers. No controlled test was run, no key was extracted and no kill-switch bypass was added. A temporary owner-only activation needs approval before execution. V4 real-AI release is not marked complete.
+
+
+## Approved controlled Gemini test — 11 November 2026 (India)
+
+PASS: owner-only prerequisites and available free-tier quota checked; only the generation flag was temporarily changed. One real Gemini request returned a labelled, review-required draft. The claim warning is retained for manual review. No auto retries or second real call were used.
+
+Rollback PASS: AI_ENABLED=false confirmed in dashboard, fresh Studio session status and an actual disabled generation response. Public AI configuration, billing, encrypted key, account allowlist, origins and limits stayed unchanged. See V4-RELEASE.md for exact evidence and remaining live quota/provider-error limitations. Earlier notes that no provider call had occurred are historical and superseded by this checkpoint.
