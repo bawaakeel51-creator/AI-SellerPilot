@@ -99,3 +99,12 @@ Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The
 - Wrangler 4.159.0 dry-run bundles the Google login and protected studio; SQLite quota and existing 5/60s limiter settings are preserved. No credential is in generated assets.
 - Browser connection is verified in Chrome. The TXT download button click succeeds, but the browser download-event observation timed out; actual file completion is not claimed. CSV contents/lifecycle are covered by automated tests.
 - OAuth app/client setup and live Google/Gemini tests remain pending. AI_ENABLED=false; no public provider enablement or billing.
+
+
+## Final V4 verification — 11 November 2026 (India)
+
+This checkpoint supersedes the old Access/OAuth/download/mobile pending notes above. PRs #13/#14 are merged and deployed. Google owner-only sign-in/logout/repeat-login and the narrow viewport checks passed. The owner downloaded and opened TXT and CSV and confirmed their contents; both are PASS by manual verification.
+
+The existing 88-test CI, Gitleaks, syntax/diff checks and local real-workerd/SQLite quota evidence remain valid; no product code changed in this documentation pass and completed tests were not repeated. Runtime settings, encrypted Gemini secret, quotas and rate limiter were inspected/preserved; AI_ENABLED remains false. Current main/deployment evidence and precise limitations are in [V4-RELEASE.md](V4-RELEASE.md).
+
+Real Gemini generation and actual provider-error handling remain release blockers. No controlled test was run, no key was extracted and no kill-switch bypass was added. A temporary owner-only activation needs approval before execution. V4 real-AI release is not marked complete.

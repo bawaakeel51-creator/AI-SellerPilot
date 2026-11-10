@@ -1,76 +1,36 @@
-# Version 4.0: staged, low-cost SaaS roadmap
+# AI SellerPilot roadmap
 
-Version 3.0 is a static, template-based tool. No model, account, payment provider, marketplace API or background research is connected. Do not market it as an AI-powered generator yet.
+## Current V4 status — 11 November 2026 (India)
 
-## 1. Validate demand before recurring spending
-Recruit 5–10 sellers for an opt-in pilot. Measure time saved, factual corrections per draft, export usage and willingness to pay. Keep Version 3 free to run; do not activate paid services during development. Suggested price experiments (not validated): ₹199 and ₹499 per month, with clearly stated usage limits.
+The public free workspace and Google-authenticated private Studio are deployed. PR #13 supplies nonce/CSRF-protected Google sessions; PR #14 fixes Cloudflare canonical login routing. Existing Calculator, Listing Studio, Research, Evidence Workspace, local storage and downloads are preserved.
 
-## 2. Add a small secure AI backend
-Keep the static frontend. Add a separately deployed backend only after provider and budget approval. Store provider keys in server-side secrets, never in HTML, JavaScript, GitHub or browser storage. Authenticate calls, enforce per-user quotas, request-size limits, timeouts, rate limits and a global spending cutoff. Use one generation per deliberate click, with an estimated allowance visible to the seller.
+88 automated tests, CI, secret scanning and diff checks passed. Google login/logout/repeat login and narrow-screen checks passed. The owner downloaded and opened TXT/CSV files and confirmed their contents. Real workerd/SQLite quota concurrency checks passed. See [QA.md](QA.md) and [V4-RELEASE.md](V4-RELEASE.md) for scope and evidence.
 
-Pass only selected product facts and marketplace context. Treat user text and retrieved competitor content as untrusted data. Require structured output, validate it against the source facts and highlight unsupported claims for human review. Keep the deterministic draft as a fallback. Label AI output only when a real request succeeds. Add factuality, prompt-injection and outage tests before release.
+**V4 real-AI release remains blocked:** a successful authenticated real Gemini generation and real-provider failure handling have not been observed. The model and project have free-tier eligibility; the deployed kill switch is false. Temporary owner-only activation requires explicit approval, and public AI remains separately gated. No billing/card/paid service is authorized.
 
-## 3. Marketplace fee verification
-Start with user-entered fee schedules and links to official fee documentation, with marketplace, category, fulfilment mode and verification date. Add effective dates and versioned fixtures. Obtain authorized API access only where available; do not promise universal automatic fee verification. Add settlement imports and reconciliation after validating the model with real, consented, anonymized examples. Keep GST/ITC accounting assumptions explicit and have a qualified reviewer validate the expanded tax model.
+## Finish V4 before declaring release complete
 
-## 4. Competitor research
-Begin with seller-supplied public product URLs and manually reviewed observations. Show source URL, observation date and whether a number is observed or estimated. Use authorized APIs or permitted data sources; no login bypass or unapproved scraping. Do not infer sales, return rates or keyword volumes from price alone. Competitor text must never supply instructions to the model.
+1. Obtain approval for a tightly scoped temporary owner-only provider test with an immediate rollback to AI disabled.
+2. Verify one real factual draft, its validated structure, human-review label and one quota reservation. Confirm authentication/CSRF and account isolation remain enforced. Stop on provider/quota/security errors; do not retry blindly.
+3. Validate actual provider-error behavior without leaking upstream payloads or credentials. Existing mocked outage/timeout/malformed-output tests remain the baseline; do not damage or replace the production secret to induce an error.
+4. Restore and independently verify `AI_ENABLED=false` even on failure. Record observed results before changing the V4 release status. Any public AI activation requires separate approval.
 
-## 5. Paid beta
-Add managed authentication, isolated per-user records, export/delete controls and a short retention policy. Add payment-provider checkout only after user approval and current cost review. Verify webhook signatures and idempotency; derive entitlements server-side. Test cancellation, refunds, failed payments, quota enforcement and cross-account access before accepting money.
+## V5 priorities (proposed; not implemented)
 
-## Budget gates
-No current vendor prices are assumed here. Before choosing providers, verify official pricing and free-tier conditions. Calculate monthly cost as:
+| Order | Scope | Acceptance gate |
+| --- | --- | --- |
+| 1 | Owner-approved capped seller pilot and factuality evaluation | Consenting sellers; measure corrections, time saved and export usefulness; no automatic publishing |
+| 2 | Editable/importable evidence records and backup UX | Preserve existing schema/storage; reject malformed imports and unsafe CSV values |
+| 3 | Consented settlement CSV reconciliation | Anonymized fixtures, traceable deductions and qualified tax/accounting review |
+| 4 | Verified marketplace fee sources and expiry reminders | Authorized data, category/slab/fulfilment fixtures and source dates; no guessed fees |
+| 5 | Optional secure account sync | Tenant isolation, retention, export/delete and recovery verified before migration |
 
-hosting + database + model input/output tokens + research/API requests + payment charges + support/refund allowance.
+No V5 feature is a revenue guarantee. Start with small reversible changes and preserve all working V4 tools. Do not expand the pilot's approved accounts or quotas without reviewing capacity and getting owner approval.
 
-Start with a capped pilot and no commitments. Set a spend cap the owner can afford, stop paid generation at the cap, and expand only after revenue covers actual variable costs. Never promise guaranteed income or a permanently free backend.
+## Deferred business gates
 
-## Release gates
-Working end-to-end AI integration; factuality evaluation; auth and account-isolation tests; secret scanning; verified current provider costs; explicit budget approval; and a rollback plan. AI and paid features stay disabled until those gates pass.
+Payments, subscriptions, marketplace API connections, background research, paid infrastructure and Play Store publication are separate projects requiring explicit approval and validation. No outreach messages or automatic product publishing are included. Validate demand with real consenting sellers before recurring spending. Never promise permanent free provider access.
 
-## Version 3 handoff — 5 November 2026
+## Rollback
 
-The static Version 3 release is live, with 13 passing automated tests and completed live-browser/download/responsive checks documented in QA.md. Next development starts with the opt-in pilot and a capped AI backend proof of concept; it must not relabel the current template generator as AI. No paid service has been activated. Keep the working static version available throughout Version 4 development.
-
-## Version 4 Pilot implementation — 6 November 2026
-
-Completed: versioned manual fee evidence, source and effective-date capture; competitor observations with explicit observed/estimated basis; optional local saving, export and deletion; cross-tool navigation. No automatic fee verification, scraping or AI calls.
-
-Still blocked for full V4: deployable provider and free-tier hosting selection, managed identity, server-side secrets, atomic per-user/global quotas, timeout and outage handling, factuality evaluation and authenticated end-to-end generation. Browser-only quotas cannot protect provider spending. Do not advertise real AI until these pass.
-
-### Version 5 candidates (after V4 AI gates)
-- Consented settlement CSV reconciliation with validated accounting fixtures.
-- Isolated account sync and retention controls.
-- Source-backed competitor comparisons using permitted APIs.
-- Paid beta only after demand validation, explicit budget approval and payment/webhook tests.
-
-Rollback: revert the V4 Pilot merge commit and allow the unchanged GitHub Pages deployment to rebuild. Existing calculator and listing data remain page-local; evidence storage uses a separate versioned browser key.
-
-## Version 4 delivery — 6 November 2026 (India)
-
-Delivered as **V4 free workspace beta**:
-- Manual fee records with marketplace/category/fulfilment, source, version, effective/check dates and percentage-plus-fixed estimates.
-- Manual competitor observations with public source URL, date, observed/estimated label and price comparison. No scraping or inferred sales.
-- Explicit device save/load/delete, bounded/validated records and CSV export.
-- Security hardening, regression tests and three-page responsive/browser QA.
-
-### V4 gates still pending — not silently considered complete
-
-Real AI and the AI/SaaS release gates above are not complete. The repository has no backend deployment, configured provider or authenticated users. No keys were requested, written or exposed and no paid service was enabled. GitHub Pages hosts the static frontend only. Do not advertise this release as a real AI generator.
-
-Before enabling any model: select and verify a genuinely free provider configuration with no paid fallback; deploy a separate authenticated backend; keep secrets server-side; enforce atomic durable per-user and global quotas before each call; bound request/output size, concurrency and timeouts; fail closed on quota-store failures; validate structured output and test unsupported claims, prompt injection, outages and account isolation. Display an actual allowance only after these gates pass. Current AI allowance is **0**.
-
-Opt-in pilot recruitment and demand validation still require real consenting sellers. Existing feedback links are preserved; no outreach messages were sent by this release.
-
-## Version 5 candidate ideas (after V4 gates)
-
-1. Secure capped AI listing pilot with human-reviewed factuality evaluation.
-2. Consent-based settlement CSV imports, deduction reconciliation and tax-model review.
-3. Authorized marketplace fee data, effective-date/slab fixtures and expiry reminders.
-4. Record editing/import, secure account sync, retention and account export/delete.
-5. Pilot evidence dashboard: time saved, corrections, exports and willingness to pay.
-
-Payments, subscriptions and billing remain off until separately approved. These are ideas, not deployed features or revenue guarantees.
-
-Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The original V4 Evidence workspace and schema/storage key were preserved; new calculations/comparisons moved to `research.html` and `research.js`. Combined suite: 26 tests passed. Existing V4 tests remain included in CI. Rollback target for this upgrade is `f9a77b7`.
+For an approved provider test, first restore the Worker flag to false and verify the disabled response. Public tools remain on GitHub Pages with an empty AI API URL. For a code regression, revert the relevant reviewed merge rather than changing secrets, account data or Pages settings. V4 static workspace history and earlier QA remain recorded in Git history; current release truth is in V4-RELEASE.md.

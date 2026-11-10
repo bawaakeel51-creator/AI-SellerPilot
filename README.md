@@ -8,13 +8,13 @@ Static seller tools for Amazon India, Flipkart and Meesho, with labelled profit 
 - `workspace.html` / `workspace.js`: preserves the existing V4 Pilot evidence records, source links, optional persistence and CSV. Its existing storage key and schema remain unchanged.
 - `qa-preview.html`: same-origin responsive viewport harness.
 
-**Real AI is not live yet.** The live site is static and template-based; its AI allowance is zero and no provider, paid service, account or payment integration is activated. The secure backend code and a hidden, disabled-by-default AI button are in the repository (see "AI backend" below) and the Worker is deployed with AI disabled. Cloudflare Access setup is pending because its Free signup requests a payment method and overage authorization; checkout has not been submitted. See ROADMAP.md for outstanding V4 gates and V5 ideas.
+**Public AI is OFF.** The public GitHub Pages tools remain static and template-based. A separate owner-only Google-authenticated Worker Studio is deployed; `AI_ENABLED=false` prevents provider calls. Authentication, exports and mobile checks pass, but authenticated real Gemini generation remains a release blocker. V4 is **not yet complete as a real-AI release**. See [V4-RELEASE.md](V4-RELEASE.md) for evidence and the approval gate.
 
 Live: https://bawaakeel51-creator.github.io/AI-SellerPilot/
 
 ## Run and test
 
-Serve with `python3 -m http.server 8765`. Open `http://localhost:8765/`. Run `node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/validation.test.mjs backend/worker.test.mjs` (Node 22+; CI uses Node 24). No dependency installation is needed. See QA.md for actual test evidence.
+Serve with `python3 -m http.server 8765`. Open `http://localhost:8765/`. Run `node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/*.test.mjs` (Node 22+; CI uses Node 24). No dependency installation is needed. See QA.md for actual test evidence.
 
 ## Data and security
 
@@ -40,33 +40,20 @@ Use a reviewed PR; run tests and browser checks, merge after approval, verify Pa
 
 The prior V4 Pilot (PRs #5/#6) arrived on main during this session. This upgrade preserves it intact; new fee calculations and price comparisons live on the separate Research page. Existing Evidence data is not migrated or removed.
 
-## AI backend (deployed, disabled; Access setup pending)
+## AI backend: deployed, Google-authenticated, generation disabled
 
-`backend/` holds a Cloudflare Worker that calls Gemini server-side. Browser code never sees the key. It checks the origin, verifies a Cloudflare Access JWT (signature, issuer, audience, expiry), validates and size-limits input, rejects prompt-injection-like text, reserves a per-user and global daily quota plus a burst limit in a Durable Object **before** calling the provider, fails closed if quota storage fails, bounds output and timeout, flags unsupported claims and always requires human review. Tests (`backend/*.test.mjs`) cover these controls with mocked Access and Gemini endpoints; real concurrency on Cloudflare and a live Gemini call are **not yet verified**.
+Private Studio: https://ai-sellerpilot-v4-api.bawaakeel51.workers.dev/studio/
 
-**Privacy:** verify the selected provider's current data-use and free-tier terms before activation. Do not send confidential data; disclose the verified terms before enabling AI.
+`backend/worker.mjs` serves the private Studio and `/v1/listings/generate` on the same origin. Google Sign-In replaces the card-blocked Cloudflare Access onboarding; no Access subscription or OAuth client secret is required. `AUTH_MODE=google`, `GOOGLE_CLIENT_ID`, owner-only `GOOGLE_ALLOWED_EMAILS` and the exact Worker `ALLOWED_ORIGIN` are configured in runtime settings. Missing configuration fails closed. The duplicate OAuth client is preserved.
 
-**Remaining activation requirements (billing stays off):**
-1. Create a Gemini API key in Google AI Studio and confirm on Google's pricing page that the chosen model is free tier. The candidate `GEMINI_MODEL` is `gemini-3.6-flash`, verified against the official free-tier pricing on 2026-11-10; actual key/model generation remains unverified.
-2. The existing Worker is deployed and its encrypted Gemini secret is preserved. Validate that key with a real call only after secure authentication is ready.
-3. Resolve the Access onboarding blocker without violating the owner's no-billing restriction, then add an owner-only Access application and set `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD` and `ALLOWED_ORIGIN=https://bawaakeel51-creator.github.io`. Set the Access cookie SameSite attribute to `None` and allow CORS preflight (OPTIONS) to reach the Worker.
-4. Set `AI_ENABLED=true`, put the Worker origin in `ai-config.js` (`apiUrl`) and in the `connect-src` of `listing.html`'s CSP, update the "No AI model connected" copy and footer text, then test with a signed-in account and a free-tier key before announcing.
+`google-auth.mjs` verifies Google RS256 signatures, issuer, audience, authorized party, timestamps, nonce and verified approved email. Sessions use host-only Secure/HttpOnly/SameSite=Strict cookies; ID tokens are never stored in localStorage. Login, logout and generation use nonce/CSRF and origin checks. Session responses and private assets are not cached. Logout clears cookies; it does not globally revoke a previously stolen signed Google token before its expiry.
 
-Never commit keys. AI output is labelled only when a real request succeeds.
+Gemini credentials remain in encrypted Worker secrets. The provider key is sent only in the server-side API header, never a browser URL. Requests and provider responses are bounded, calls time out, output is validated and human review is mandatory. The Durable Object reserves quota **before** provider calls and fails closed on storage failure. Current limits: 2 requests/account/day, 20 globally/day and a 5-second per-account interval; login attempts use the existing 5/60-second rate limiter. Failed generations consume reserved allowance; invalid requests do not.
 
-## Private AI activation (preparation only)
+`GEMINI_MODEL=gemini-3.6-flash` is listed with free standard input/output on [Google's pricing page](https://ai.google.dev/gemini-api/docs/pricing). AI Studio shows the project as Free tier with 5 RPM / 250K TPM / 20 RPD for this model. Eligibility/configuration is verified; actual key/model generation is not. Free-tier input/output may be used to improve Google products. Do not send confidential or personal information.
 
-The optional private preview runs at the Worker's `/studio/` path. Its page, scripts and API share one origin so Cloudflare Access sessions do not rely on third-party cookies. The Worker verifies the Access JWT before serving any preview asset. The public GitHub Pages tools and empty public `apiUrl` are preserved.
+## Deployment and activation boundary
 
-`backend/build-studio.mjs` generates preview assets from the existing Listing Studio, with provider privacy disclosure, human-review guidance and the default 2/user/day, 20/global/day and 5-second request interval. Run Wrangler from `backend/`. `.github/workflows/deploy-worker.yml` provides a manual main-only deployment after all regression tests; it forces AI disabled. It requires a GitHub Actions secret named `CLOUDFLARE_API_TOKEN`, restricted to the `ai-sellerpilot-v4-api` Worker. Do not put the token or Gemini key in source, logs or chat. Keep the existing Gemini secret in Cloudflare.
+Run Wrangler from `backend/`. `build-studio.mjs` generates private assets from the existing Listing Studio. The main-only deployment workflow runs regression checks and forces `AI_ENABLED=false`. Its encrypted GitHub credential is restricted to this Worker. `keep_vars=true` preserves dashboard variables; do not replace the Gemini secret or alter other projects. The public `ai-config.js` keeps its API URL empty.
 
-Before enabling generation, verify the Workers Free subscription, an unbilled Gemini free-tier project/model, the Access application and owner-only policy, issuer/audience/origin settings, real authentication, Durable Object limits and a successful reviewed provider response. AI activation and the public link remain pending until these live gates pass. No activation or deployment is implied by this preparation.
-
-
-## Google sign-in implementation (PR #13)
-
-The private Worker studio now supports Google Identity Services without a Cloudflare Access subscription. Set `GOOGLE_CLIENT_ID` to a Web OAuth client whose authorized JavaScript origin is the Worker origin. Set `GOOGLE_ALLOWED_EMAILS` to an explicit comma-separated test-account allowlist and `ALLOWED_ORIGIN` to that exact Worker origin. Missing configuration fails closed. These are runtime dashboard variables; no client secret is used. Keep the existing encrypted Gemini secret and `AI_ENABLED=false`.
-
-`/login.html` initializes a ten-minute random login nonce. The server checks the same-origin JSON POST, nonce cookie/header and the signed Google token's nonce before issuing a one-hour-or-shorter Secure, HttpOnly, SameSite=Strict host-only cookie. It verifies signature, issuer, audience, authorized party, timestamps and verified approved email; user quotas use the stable `google:sub` identity. The browser never stores an ID token in localStorage. Session-state responses and assets use no-store. Generation and logout require a separate CSRF header bound to the session CSRF cookie. Logout clears all host cookies; a previously stolen Google token remains subject to its Google expiry, so this is not global token revocation.
-
-The existing rate limiter limits login attempts. Durable Object daily quotas and burst limits are preserved. The public GitHub Pages templates and tools remain independent. Google configuration, real-browser login and actual provider generation must be verified before declaring AI ready. The public generation kill switch remains false; tests only use mocked provider/auth responses.
+No live-provider test can pass through the existing generation endpoint while `AI_ENABLED=false`. Do not create a diagnostic endpoint that bypasses this switch or copy the encrypted provider key elsewhere. A controlled real test needs explicit owner approval for temporary activation under the existing single-account allowlist, followed immediately by disabling it again. [V4-RELEASE.md](V4-RELEASE.md) defines the test and rollback plan. Public access, additional accounts, billing and paid services require separate approval.
