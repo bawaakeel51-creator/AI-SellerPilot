@@ -57,7 +57,7 @@ test('login rate limiter, malformed inputs, duplicate cookies and size limits fa
 test('private assets redirect without Google session and AI remains disabled without provider calls',async()=>{
  const e={...env,ASSETS:{fetch:async()=>new Response('private')}};
  const denied=await worker.fetch(req('/studio/'),e);assert.equal(denied.status,302);assert.equal(denied.headers.get('location'),'/login.html');
- const publicLogin=await worker.fetch(req('/login.html'),e);assert.equal(await publicLogin.text(),'private');
+ for (const path of ['/login', '/login.html', '/login.js']) { const publicLogin=await worker.fetch(req(path),e);assert.equal(await publicLogin.text(),'private'); }
  const disabled=await worker.fetch(req('/v1/listings/generate',{method:'POST'}),e);assert.equal(disabled.status,503);assert.equal((await disabled.json()).error,'ai_disabled');
 });
 
