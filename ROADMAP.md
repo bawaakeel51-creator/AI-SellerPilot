@@ -6,12 +6,12 @@ The public free workspace and Google-authenticated private Studio are deployed. 
 
 88 automated tests, CI, secret scanning and diff checks passed. Google login/logout/repeat login and narrow-screen checks passed. The owner downloaded and opened TXT/CSV files and confirmed their contents. Real workerd/SQLite quota concurrency checks passed. See [QA.md](QA.md) and [V4-RELEASE.md](V4-RELEASE.md) for scope and evidence.
 
-**V4 real-AI release remains blocked:** a successful authenticated real Gemini generation and real-provider failure handling have not been observed. The model and project have free-tier eligibility; the deployed kill switch is false. Temporary owner-only activation requires explicit approval, and public AI remains separately gated. No billing/card/paid service is authorized.
+**V4 real-AI release remains blocked:** one approved owner-only Gemini generation has passed and rollback to AI OFF is verified. Production quota-negative and actual provider failure handling remain unverified. The model and project have free-tier eligibility; the deployed kill switch is false. Temporary owner-only activation requires explicit approval, and public AI remains separately gated. No billing/card/paid service is authorized.
 
 ## Finish V4 before declaring release complete
 
 1. Obtain approval for a tightly scoped temporary owner-only provider test with an immediate rollback to AI disabled.
-2. Verify one real factual draft, its validated structure, human-review label and one quota reservation. Confirm authentication/CSRF and account isolation remain enforced. Stop on provider/quota/security errors; do not retry blindly.
+2. The first real draft and human-review label are observed; complete the remaining production quota-negative/account-isolation checks under a separately approved plan. Confirm authentication/CSRF and account isolation remain enforced. Stop on provider/quota/security errors; do not retry blindly.
 3. Validate actual provider-error behavior without leaking upstream payloads or credentials. Existing mocked outage/timeout/malformed-output tests remain the baseline; do not damage or replace the production secret to induce an error.
 4. Restore and independently verify `AI_ENABLED=false` even on failure. Record observed results before changing the V4 release status. Any public AI activation requires separate approval.
 

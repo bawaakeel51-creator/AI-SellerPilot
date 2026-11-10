@@ -1,6 +1,6 @@
 # V4 release verification — 11 November 2026 (India)
 
-**Status: authenticated preview deployed; real-AI release NOT COMPLETE.**
+**Status: owner-only controlled Gemini generation PASS; AI restored OFF. Public real-AI release NOT COMPLETE.**
 
 ## Deployed baseline
 
@@ -32,21 +32,29 @@ Direct container HTTP probes were blocked by Cloudflare 1010; they are not appli
 
 Runtime was inspected without changing settings: `AI_ENABLED=false`, `AUTH_MODE=google`, exact same-origin allowlist, one approved Google account, encrypted `GEMINI_API_KEY`, existing quota object and rate limiter. Limits remain 2/account/day, 20/global/day and a 5-second account interval. Failed provider attempts consume reserved quota. Google OAuth remains in Testing; duplicate client is untouched.
 
-`gemini-3.6-flash` matches the backend API model path. Google AI Studio shows Free tier and 5 RPM / 250K TPM / 20 RPD; [official pricing](https://ai.google.dev/gemini-api/docs/pricing) lists standard input/output as free. These observations establish model/configuration eligibility, not a successful request using the encrypted Worker key. No provider secret was revealed, copied into a URL, source, chat or test artifact. No billing was activated.
+`gemini-3.6-flash` matches the backend API model path. Google AI Studio shows Free tier and 5 RPM / 250K TPM / 20 RPD; [official pricing](https://ai.google.dev/gemini-api/docs/pricing) lists standard input/output as free. The subsequently approved controlled test succeeded using the encrypted Worker key; see the recorded result below. No provider secret was revealed, copied into a URL, source, chat or test artifact. No billing was activated.
 
-The final source review checked matching frontend/API contracts, RS256 Google verification, CSRF and exact-origin checks, secure session cookies, bounded bodies, provider timeout, validated output and quota-before-provider ordering. No new blocking defect was identified in reviewed code. Provider behavior and factual output still need live evidence.
+The final source review checked matching frontend/API contracts, RS256 Google verification, CSRF and exact-origin checks, secure session cookies, bounded bodies, provider timeout, validated output and quota-before-provider ordering. No new blocking defect was identified in reviewed code. One successful live response and review warning are now observed. Live provider failures and production quota exhaustion have not been induced.
 
-## Remaining release blockers
+## Approved controlled-test result — PASS
 
-1. Actual authenticated Gemini generation using the existing server-side key.
-2. Actual provider failure/error behavior, with safe user errors and no sensitive details.
-3. Recorded rollback to disabled after any approved controlled test; separate owner decision about public AI.
+The owner explicitly approved at most two real calls, conditional on no public exposure and immediate rollback. Preconditions were checked before activation: the approved-email allowlist contained only the owner, AUTH_MODE was Google, signed-token/CSRF/origin gates protected the API, public Pages apiUrl was empty, and the model's free-tier dashboard showed 0/20 daily use. No accounts, origins, secrets or limits were changed.
 
-V4 must not be marked complete as a real-AI release until its blockers are resolved. The free static workspace remains usable.
+Only AI_ENABLED was temporarily set true on the existing Worker. **One real Gemini call** was made from the signed-in private Studio with synthetic facts: Desk organiser, Stainless steel, Two compartments, Matte finish. It returned an AI-assisted title, four bullets and description through the existing validated backend. Human-review labelling appeared; the conservative claims validator flagged “Stainless steel material” for review despite the supplied material fact. This warning is recorded, not treated as independent factual certification.
 
-## Prepared controlled test — NOT AUTHORIZED OR RUN
+Immediately after the response, AI_ENABLED was restored to false. The dashboard showed false; a fresh Studio load showed “Signed in · AI generation is disabled”; a subsequent generation attempt returned “AI generation is not enabled. Use the template draft instead.” The disabled attempt made no provider call under the verified kill-switch path. **Real call count: 1 of maximum 2.** No automatic retry or second live call was needed. Public AI configuration stayed empty; billing was not activated and provider credentials remained encrypted/server-side.
 
-The current endpoint refuses every provider call while `AI_ENABLED=false`. Extracting its encrypted key or adding a bypass endpoint would undermine the agreed boundary. Therefore temporary activation requires owner approval first.
+## Remaining release blockers and limits
+
+1. Production quota exhaustion/account-isolation negative checks have not been exercised through live provider calls; existing signed-auth mocks and real local workerd quota checks remain the evidence. No extra live call was risked beyond the approved count to force a denial.
+2. An actual Gemini provider error/timeout was not induced. Mocked provider error/timeout/malformed-output tests pass; do not mislabel them as live failures or damage the production key to manufacture an error.
+3. Public AI is separately unapproved and remains OFF. Do not mark V4 fully complete as a public real-AI release while these recorded gates remain.
+
+The static workspace and authenticated preview remain available. This controlled test passed; the remaining items are untested/pending, not observed failures.
+
+## Controlled-test procedure (retained for future separately approved tests)
+
+The endpoint refuses provider calls while AI_ENABLED=false. The one-call test above used explicit owner approval and is finished with the switch restored. Any further temporary activation needs a new scoped approval; the unused allowance is not permission for an ongoing pilot. Never extract the key or add a kill-switch bypass.
 
 If approved:
 
