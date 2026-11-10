@@ -8,7 +8,11 @@ compatibility_date = "2026-11-01"
 AI_ENABLED = "false"
 PER_USER_DAILY_LIMIT = "2"
 GLOBAL_DAILY_LIMIT = "20"
-GEMINI_MODEL = "gemini-2.5-flash"
+MIN_INTERVAL_MS = "5000"
+# Set GEMINI_MODEL in the Cloudflare dashboard to a model ID that Google's official pricing page lists as free tier
+# (checked 9 Nov 2026: Flash and Flash-Lite 3.x models; gemini-2.5-flash was NOT listed). Empty = AI stays disabled.
+# Free-tier content may be used by Google to improve its products; do not send confidential data.
+GEMINI_MODEL = ""
 # Configure ACCESS_TEAM_DOMAIN, ACCESS_AUD, ALLOWED_ORIGIN in the Cloudflare dashboard.
 # Store GEMINI_API_KEY using encrypted Worker secrets only.
 

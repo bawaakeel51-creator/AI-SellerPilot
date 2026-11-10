@@ -70,3 +70,13 @@ Local preview was unreachable from the separate cloud browser; browser verificat
 - Live deployment verification is recorded in the release report after merge; staged checks above do not themselves prove deployment.
 
 Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The original V4 Evidence workspace and schema/storage key were preserved; new calculations/comparisons moved to `research.html` and `research.js`. Combined suite: 26 tests passed. Existing V4 tests remain included in CI. Rollback target for this upgrade is `f9a77b7`.
+
+## PR #9 hardening verification — 2026-11-10
+
+- Applied the supplied sellerpilot-v4-hardening.patch to PR #9 with latest main changes preserved.
+- Node v24.22.1: all five test files pass, 75 tests total. Tests include real RSA signatures with mocked JWKS/provider fetches, malformed/expired/forged/future tokens, origin/CORS, request and provider body limits, prompt-like facts, unsupported claims, quota isolation and failure, daily/global limits, serialized concurrent reservations, burst expiry cleanup, and stale AI form responses.
+- Additional fixes: collision-free quota subject namespace, server-owned reservation date, expired burst-key cleanup, streamed body bounds, JSON content type enforcement, JWT subject/nbf validation and stale asynchronous UI result invalidation.
+- Static template, calculator, research and evidence regression tests pass. No package dependencies are added.
+- AI_ENABLED remains false, GEMINI_MODEL and public apiUrl remain empty. No Worker deployment, real provider calls, secrets, paid service or billing activation.
+- The concurrency test uses serialized mock transactions; production Cloudflare concurrency, Access cookies/CORS and live Gemini remain unverified and require a separately approved activation.
+- Gitleaks 8.30.1 working-tree and full git-history scans: no secrets after reviewing/excluding exactly the existing public Cloudflare analytics identifier and localStorage key (raw detections: 2 current / 3 historical). No credentials were found. Targeted executable-sink review found only the pre-existing calculator table rendering: fixed labels plus validated finite numbers; no untrusted HTML path. No dynamic eval/Function/document.write usage in application scripts.
