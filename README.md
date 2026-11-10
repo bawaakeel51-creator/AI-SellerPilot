@@ -8,7 +8,7 @@ Static seller tools for Amazon India, Flipkart and Meesho, with labelled profit 
 - `workspace.html` / `workspace.js`: preserves the existing V4 Pilot evidence records, source links, optional persistence and CSV. Its existing storage key and schema remain unchanged.
 - `qa-preview.html`: same-origin responsive viewport harness.
 
-**Real AI is not live yet.** The live site is static and template-based; its AI allowance is zero and no provider, paid service, account or payment integration is activated. The secure backend code and a hidden, disabled-by-default AI button are in the repository (see "AI backend" below) but nothing is deployed until the owner completes the setup steps. See ROADMAP.md for outstanding V4 gates and V5 ideas.
+**Real AI is not live yet.** The live site is static and template-based; its AI allowance is zero and no provider, paid service, account or payment integration is activated. The secure backend code and a hidden, disabled-by-default AI button are in the repository (see "AI backend" below) and the Worker is deployed with AI disabled. Cloudflare Access setup is pending because its Free signup requests a payment method and overage authorization; checkout has not been submitted. See ROADMAP.md for outstanding V4 gates and V5 ideas.
 
 Live: https://bawaakeel51-creator.github.io/AI-SellerPilot/
 
@@ -40,16 +40,16 @@ Use a reviewed PR; run tests and browser checks, merge after approval, verify Pa
 
 The prior V4 Pilot (PRs #5/#6) arrived on main during this session. This upgrade preserves it intact; new fee calculations and price comparisons live on the separate Research page. Existing Evidence data is not migrated or removed.
 
-## AI backend (built, tested, disabled, not deployed)
+## AI backend (deployed, disabled; Access setup pending)
 
 `backend/` holds a Cloudflare Worker that calls Gemini server-side. Browser code never sees the key. It checks the origin, verifies a Cloudflare Access JWT (signature, issuer, audience, expiry), validates and size-limits input, rejects prompt-injection-like text, reserves a per-user and global daily quota plus a burst limit in a Durable Object **before** calling the provider, fails closed if quota storage fails, bounds output and timeout, flags unsupported claims and always requires human review. Tests (`backend/*.test.mjs`) cover these controls with mocked Access and Gemini endpoints; real concurrency on Cloudflare and a live Gemini call are **not yet verified**.
 
 **Privacy:** verify the selected provider's current data-use and free-tier terms before activation. Do not send confidential data; disclose the verified terms before enabling AI.
 
-**Owner steps to enable (all free tiers, none done yet):**
-1. Create a Gemini API key in Google AI Studio and confirm on Google's pricing page that the chosen model is free tier. Set `GEMINI_MODEL` (the repo value is empty on purpose).
-2. Create a free Cloudflare account, deploy `backend/` with Wrangler, and store the key with `wrangler secret put GEMINI_API_KEY`.
-3. Add a Cloudflare Access application for the Worker (free plan) and set `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD` and `ALLOWED_ORIGIN=https://bawaakeel51-creator.github.io`. Set the Access cookie SameSite attribute to `None` and allow CORS preflight (OPTIONS) to reach the Worker.
+**Remaining activation requirements (billing stays off):**
+1. Create a Gemini API key in Google AI Studio and confirm on Google's pricing page that the chosen model is free tier. The candidate `GEMINI_MODEL` is `gemini-3.6-flash`, verified against the official free-tier pricing on 2026-11-10; actual key/model generation remains unverified.
+2. The existing Worker is deployed and its encrypted Gemini secret is preserved. Validate that key with a real call only after secure authentication is ready.
+3. Resolve the Access onboarding blocker without violating the owner's no-billing restriction, then add an owner-only Access application and set `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD` and `ALLOWED_ORIGIN=https://bawaakeel51-creator.github.io`. Set the Access cookie SameSite attribute to `None` and allow CORS preflight (OPTIONS) to reach the Worker.
 4. Set `AI_ENABLED=true`, put the Worker origin in `ai-config.js` (`apiUrl`) and in the `connect-src` of `listing.html`'s CSP, update the "No AI model connected" copy and footer text, then test with a signed-in account and a free-tier key before announcing.
 
 Never commit keys. AI output is labelled only when a real request succeeds.

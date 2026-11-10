@@ -1,6 +1,6 @@
-# V4 AI Backend Contract (not deployed)
+# V4 AI Backend Contract (deployed, AI disabled)
 
-Tracks #8. This is a design contract, not a working API. Current GitHub Pages listing generator remains deterministic and AI allowance remains **0**.
+Tracks #8. The Worker implements this contract and is deployed with AI disabled; live Access and provider validation remain pending. Current GitHub Pages listing generator remains deterministic and AI allowance remains **0**.
 
 ## Proposed API
 
@@ -17,7 +17,7 @@ Tracks #8. This is a design contract, not a working API. Current GitHub Pages li
 
 ## Required validation
 
-Unit/integration tests must cover invalid inputs, injected instructions in product text, unsupported claims, quota races, concurrent calls, failed reservations, cross-user access, provider timeouts/outages, malformed provider output, secret leaks and safe fallback to the existing deterministic listing tool. Run real end-to-end tests only after approved provider and identity configuration. No production deployment from this documentation-only change.
+Unit/integration tests must cover invalid inputs, injected instructions in product text, unsupported claims, quota races, concurrent calls, failed reservations, cross-user access, provider timeouts/outages, malformed provider output, secret leaks and safe fallback to the existing deterministic listing tool. Run real end-to-end tests only after approved provider and identity configuration. Do not enable production generation before those live validation gates pass.
 
 ## Release gate
 

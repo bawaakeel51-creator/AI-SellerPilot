@@ -80,3 +80,15 @@ Integration note: main advanced to `f9a77b7` (PRs #5/#6) during development. The
 - AI_ENABLED remains false, GEMINI_MODEL and public apiUrl remain empty. No Worker deployment, real provider calls, secrets, paid service or billing activation.
 - The concurrency test uses serialized mock transactions; production Cloudflare concurrency, Access cookies/CORS and live Gemini remain unverified and require a separately approved activation.
 - Gitleaks 8.30.1 working-tree and full git-history scans: no secrets after reviewing/excluding exactly the existing public Cloudflare analytics identifier and localStorage key (raw detections: 2 current / 3 historical). No credentials were found. Targeted executable-sink review found only the pre-existing calculator table rendering: fixed labels plus validated finite numbers; no untrusted HTML path. No dynamic eval/Function/document.write usage in application scripts.
+
+## Secure deployment checkpoint — 2026-11-10
+
+- PR #10 merged at 4d0e3cdf62b0bd3c95262bdbd561e5eb24ff6127. Its CI and main CI passed all 77 tests; Pages deployment succeeded.
+- Cloudflare token restricted to ai-sellerpilot-v4-api (Individual Workers Editor), 7-day expiry; stored as encrypted GitHub Actions secret CLOUDFLARE_API_TOKEN. No token or Gemini credential committed.
+- Manual Worker deployment run 42736112151 succeeded, version 559a53ca-3d0f-4d36-9eb1-adfff0561cf2. SQLite QuotaGate and private studio assets provisioned. AI stays disabled.
+- Deployment config now explicitly preserves the pre-existing AI_RATE_LIMITER (namespace 1001, 5/60s), compatibility date 2026-11-07, disabled preview URLs and enabled logging; keep_vars preserves dashboard-only authentication settings on future deploys. No application logging of product facts or credentials.
+- Cloudflare Access onboarding blocked: even Zero Trust Free requires a payment method, Terms acceptance and authorization to charge overages. Checkout was not submitted because billing activation is prohibited. No Access org/issuer/audience has been fabricated; AI must remain disabled until authentication can be configured under approved terms.
+- Real Gemini calls, authenticated live generation, live authenticated quota tests and activation remain pending. Public static features remain available. Browser download event verification remains subject to the browser-tool limitation; automated TXT/CSV serialization/lifecycle coverage passes.
+- Candidate GEMINI_MODEL configured as gemini-3.6-flash from Google's official free-tier pricing checked 2026-11-10. AI_ENABLED remains false; no provider call or claim of model/key validation.
+- Additional workerd/Miniflare SQLite runtime check passes: 10 concurrent reservations allow exactly 2 for one user, isolate a second user, enforce the global cap, and return ai_disabled without provider calls. This is a local real-runtime check, not authenticated production concurrency verification.
+- Live private studio URL rejects unauthenticated access with unauthorized; no studio assets or secrets returned.
