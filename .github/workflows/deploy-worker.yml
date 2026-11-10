@@ -1,6 +1,13 @@
 name: Deploy disabled SellerPilot Worker
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'listing.html'
+      - 'listing.js'
+      - '.github/workflows/deploy-worker.yml'
 permissions:
   contents: read
 concurrency:
