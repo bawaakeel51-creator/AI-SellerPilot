@@ -28,3 +28,16 @@ test('saved copies are versioned, bounded and fully revalidated',()=>{const raw=
 test('research CSV neutralizes formula injection without corrupting quotes',()=>{const r=research.validateRecord({...competitor,label:'=HYPERLINK("bad")',notes:' @SUM(1)'});const csv=research.csv([r]);assert.ok(csv.startsWith('\ufeff"type"'));assert.ok(csv.includes('"\'=HYPERLINK(""bad"")"'));assert.ok(csv.includes('"\'@SUM(1)"'));});
 test('research strips unknown properties from saved data',()=>{const r=research.validateRecord({...fee,apiKey:'not-a-key',__test:'unknown'});assert.equal(r.apiKey,undefined);assert.equal(r.__test,undefined);});
 test('release pages block inline scripts, objects, base changes and form submission',()=>{for(const name of ['index.html','listing.html','workspace.html','research.html']){const html=fs.readFileSync(name,'utf8');assert.match(html,/Content-Security-Policy/);assert.match(html,/object-src 'none'/);assert.match(html,/base-uri 'none'/);assert.match(html,/form-action 'none'/);assert.doesNotMatch(html,/<script>/);assert.doesNotMatch(html,/script-src[^;]*unsafe-inline/);}});
+
+test('V5 JSON backup round-trip retains V4 schema and sanitizes extra properties',()=>{
+  const records=[research.validateRecord(fee),research.validateRecord(competitor)];
+  const exported=research.backup(records);
+  assert.deepEqual(research.decode(exported),records);
+  assert.equal(JSON.parse(exported).version,4);
+  assert.equal(research.decode(research.backup([{...fee,unexpected:'discard'}]))[0].unexpected,undefined);
+});
+test('V5 JSON backup rejects invalid and oversized records',()=>{
+  assert.throws(()=>research.backup(Array(101).fill(fee)));
+  assert.throws(()=>research.backup([{...fee,source:'javascript:bad'}]));
+  assert.throws(()=>research.backup('not records'));
+});
