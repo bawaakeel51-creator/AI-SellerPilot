@@ -35,9 +35,9 @@ Legacy CSV limitation: before the encoding column existed, an exported formula e
 
 ## Tests
 
-- PR #17 focused: `node --test test.cjs` — 33 passed.
+- PR #17 focused: `node --test test.cjs` — 34 passed.
 - PR #19 focused: `node --test workspace.test.cjs` — 17 passed.
-- Combined suite: `node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/*.test.mjs` — 112 passed, 0 failed (final combined tree).
+- Combined suite: `node --test test.cjs workspace.test.cjs listing-ai.test.cjs backend/*.test.mjs` — 113 passed, 0 failed (final combined tree).
 - Syntax checks for changed application scripts and `git diff --check` pass.
 - Final-head GitHub Actions links/status are in each PR description after push; local passes are not substituted for CI.
 - A focused high-confidence credential-pattern scan inspected 131 committed blobs across local Git history with zero matching paths. This is not a fresh Gitleaks scan or security certification. No application runtime dependencies were added; the existing pinned Wrangler deployment dependency was untouched.
@@ -58,7 +58,7 @@ New-branch visual/mobile review, inaccessible user-device local changes, real co
 
 ## Final-completion follow-up
 
-Research now includes the previously missing fee/competitor edit/cancel and strict Research CSV replacement import. A shared `csv-codec.js` avoids separate parsing/escaping implementations; both Draft PR branches include the identical module so each remains independently testable. Existing Evidence CSV schema and all storage keys remain unchanged. Research imports preserve duplicate rows and require explicit replacement confirmation. Unsaved form values in the other form survive a save/cancel operation. Hexadecimal/scientific-notation strings are rejected as non-decimal research amounts; ordinary finite numeric records remain supported. Both import UIs show reading/validation progress.
+Research now includes the previously missing fee/competitor edit/cancel and strict Research CSV replacement import. A shared `csv-codec.js` avoids separate parsing/escaping implementations; both Draft PR branches include the identical module so each remains independently testable. Existing Evidence CSV schema and all storage keys remain unchanged. Research imports preserve duplicate rows and require explicit replacement confirmation. Unsaved form values in the other form survive a save/cancel operation. Hexadecimal and nonfinite strings are rejected; finite decimal/exponent notation remains supported, including tiny values serialized in exponent form. A focused round-trip regression was reproduced and fixed before final delivery. Both import UIs show reading/validation progress.
 
 Local checkout and new isolated worktrees were clean before edits; existing original audit branches/commits were left intact. User-laptop uncommitted date edits are not accessible here and were not reviewed, overwritten or represented as pushed. Valid 0006 dates remain supported.
 
