@@ -18,7 +18,7 @@ Serve with `python3 -m http.server 8765`. Open `http://localhost:8765/`. Run `no
 
 ## Data and security
 
-Calculations and product/research inputs are processed locally. Research records are not persisted until **Save on this device** is clicked; **Load device copy** explicitly restores them. Clearing the tab does not delete the saved copy. **Delete device copy** deletes only this app's research storage key. CSV is a review/backup format; import and cloud sync are not implemented. There is a 100-record limit. Do not store secrets or personal information, especially on shared devices.
+Calculations and product/research inputs are processed locally. Research records are not persisted until **Save on this device** is clicked; **Load device copy** explicitly restores them. Clearing the tab does not delete the saved copy. **Delete device copy** deletes only this app's research storage key. CSV is a review format. Research supports a versioned JSON backup and validated JSON import (500 KB UTF-8, 100 records). Import asks before replacing tab records and never overwrites the device copy until Save is clicked. Keep backups private. Cloud sync is not implemented. There is a 100-record limit. Do not store secrets or personal information, especially on shared devices.
 
 The existing profit-page Cloudflare analytics integration remains enabled and is disclosed. Feedback links open Google Forms. No research URL is fetched. Sources remain user-supplied and unverified. A Cloudflare analytics site identifier is public configuration, not an AI API key.
 

@@ -115,3 +115,11 @@ Real Gemini generation and actual provider-error handling remain release blocker
 PASS: owner-only prerequisites and available free-tier quota checked; only the generation flag was temporarily changed. One real Gemini request returned a labelled, review-required draft. The claim warning is retained for manual review. No auto retries or second real call were used.
 
 Rollback PASS: AI_ENABLED=false confirmed in dashboard, fresh Studio session status and an actual disabled generation response. Public AI configuration, billing, encrypted key, account allowlist, origins and limits stayed unchanged. See V4-RELEASE.md for exact evidence and remaining live quota/provider-error limitations. Earlier notes that no provider call had occurred are historical and superseded by this checkpoint.
+
+## V5 PR #17 audit — 16 November 2026 (India)
+
+- Rebased content by merging current main into the feature branch; main itself is unchanged. No conflicts.
+- `node --test test.cjs`: 27 passed, 0 failed. Includes JSON fee/competitor round trips, unknown-property stripping, malformed/oversized UTF-8 files, cancel/replace confirmation, saved-copy preservation and delayed import races after clear/new selection.
+- Fixed asynchronous overwrite after workspace changes; required control-only text; canonical source URLs that could not be reimported; character/byte limit mismatch. Existing early years (including 0006) and valid leap dates remain accepted.
+- README now describes JSON import accurately. Storage version 4 and key are unchanged. CSV remains a review file; JSON is the importable Research backup.
+- Syntax and whitespace checks passed. Live Google/provider tests were not repeated; no backend/auth/runtime settings changed. Latest-head CI is recorded on the PR after push. UI tests here use a simulated DOM, not a visual browser.

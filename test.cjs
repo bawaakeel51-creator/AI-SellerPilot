@@ -41,3 +41,39 @@ test('V5 JSON backup rejects invalid and oversized records',()=>{
   assert.throws(()=>research.backup([{...fee,source:'javascript:bad'}]));
   assert.throws(()=>research.backup('not records'));
 });
+
+test('research rejects control-only required text and oversized canonical URLs',()=>{
+  assert.throws(()=>research.validateRecord({...fee,category:'\u0001'}));
+  assert.throws(()=>research.validateRecord({...fee,source:'https://example.com/'+ '界'.repeat(200)}));
+});
+test('research JSON byte bounds match file limits and reject malformed envelopes',()=>{
+  for(const raw of ['null','[]','{','x'.repeat(500001),JSON.stringify({version:4,records:[],padding:'界'.repeat(170000)})])assert.throws(()=>research.decode(raw));
+  assert.deepEqual(research.decode(research.backup([])),[]);
+});
+test('research dates preserve early years and leap dates without a recent-year cutoff',()=>{
+  assert.equal(research.validateRecord({...fee,checked:'0006-01-01',effective:'0004-02-29'}).checked,'0006-01-01');
+  assert.throws(()=>research.validateRecord({...fee,checked:'2025-02-29'}));
+});
+function researchUI(){
+ const nodes={},saved=new Map();let consent=true;
+ const make=()=>({value:'',files:[],children:[],events:{},textContent:'',addEventListener(k,fn){this.events[k]=fn;},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(){},click(){},remove(){}});
+ const document={getElementById(id){return nodes[id]??=make();},createElement:make,body:make()};
+ const ctx={document,URL:class extends URL{static createObjectURL(){return 'blob:test';}static revokeObjectURL(){}},Blob:class{},TextEncoder,setTimeout:fn=>fn(),confirm:()=>consent,localStorage:{setItem(k,v){saved.set(k,v);},getItem:k=>saved.get(k)??null,removeItem:k=>saved.delete(k)}};
+ vm.runInNewContext(fs.readFileSync('research.js','utf8'),ctx);
+ return {nodes,saved,setConsent:v=>consent=v,importFile:text=>nodes['import-json'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.json'}})};
+}
+test('research import cancellation and malformed files preserve tab and saved records',async()=>{
+ const ui=researchUI(),first=research.backup([fee]),second=research.backup([competitor]);
+ await ui.importFile(async()=>first);ui.nodes.save.onclick();const saved=[...ui.saved.values()][0];
+ ui.setConsent(false);await ui.importFile(async()=>second);assert.match(ui.nodes.records.children[0].children[0].textContent,/Amazon India/);
+ ui.setConsent(true);await ui.importFile(async()=>'{');assert.match(ui.nodes['workspace-status'].textContent,/Import rejected/);
+ assert.equal([...ui.saved.values()][0],saved);
+ await ui.importFile(async()=>second);assert.equal(ui.nodes.records.children[0].children[0].textContent,competitor.label);assert.equal([...ui.saved.values()][0],saved);
+});
+test('research rejects stale async imports after clear or a newer selection',async()=>{
+ const ui=researchUI();let finish;
+ const pending=ui.importFile(()=>new Promise(resolve=>finish=resolve));ui.nodes.clear.onclick();finish(research.backup([fee]));await pending;
+ assert.match(ui.nodes['workspace-status'].textContent,/Workspace changed/);assert.equal(ui.nodes.export.disabled,true);
+ const old=ui.importFile(()=>new Promise(resolve=>finish=resolve));await ui.importFile(async()=>research.backup([competitor]));finish(research.backup([fee]));await old;
+ assert.equal(ui.nodes.records.children[0].children[0].textContent,competitor.label);
+});
