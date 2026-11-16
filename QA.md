@@ -115,3 +115,23 @@ Real Gemini generation and actual provider-error handling remain release blocker
 PASS: owner-only prerequisites and available free-tier quota checked; only the generation flag was temporarily changed. One real Gemini request returned a labelled, review-required draft. The claim warning is retained for manual review. No auto retries or second real call were used.
 
 Rollback PASS: AI_ENABLED=false confirmed in dashboard, fresh Studio session status and an actual disabled generation response. Public AI configuration, billing, encrypted key, account allowlist, origins and limits stayed unchanged. See V4-RELEASE.md for exact evidence and remaining live quota/provider-error limitations. Earlier notes that no provider call had occurred are historical and superseded by this checkpoint.
+
+## V5 PR #17 audit — 16 November 2026 (India)
+
+- Rebased content by merging current main into the feature branch; main itself is unchanged. No conflicts.
+- `node --test test.cjs`: 27 passed, 0 failed. Includes JSON fee/competitor round trips, unknown-property stripping, malformed/oversized UTF-8 files, cancel/replace confirmation, saved-copy preservation and delayed import races after clear/new selection.
+- Fixed asynchronous overwrite after workspace changes; required control-only text; canonical source URLs that could not be reimported; character/byte limit mismatch. Existing early years (including 0006) and valid leap dates remain accepted.
+- README now describes JSON import accurately. Storage version 4 and key are unchanged. CSV remains a review file; JSON is the importable Research backup.
+- Syntax and whitespace checks passed. Live Google/provider tests were not repeated; no backend/auth/runtime settings changed. Latest-head CI is recorded on the PR after push. UI tests here use a simulated DOM, not a visual browser.
+
+
+## V5 Research completion follow-up — 16 November 2026 (India)
+
+- Completed missing Research fee/competitor edit/cancel and validated CSV replacement import; explicit confirmation, version 4/key preservation, separate Evidence schema, duplicate preservation and 100-record cap.
+- Shared dependency-free `csv-codec.js` handles strict CSV tokenization and reversible text escaping; schemas remain validated by their respective workspaces.
+- Added regression coverage for Research CSV fee/competitor round trips, legacy files, literal apostrophes, unsafe formulas, malformed structure/URLs/dates/numbers, import cancellation/atomicity/races, edit-at-capacity, correct edit target after preceding-row removal and preserving another form's unsaved draft.
+- `node --test test.cjs`: 34 passed; syntax/whitespace checks pass. Broader and combined-head evidence is in the PR description after verification.
+- Chromium is installed but launch fails with `socket() failed: Operation not permitted` in the isolated test environment. No mobile rendering, physical-device, visual or keyboard-browser pass is claimed. This differs from the earlier connected-browser localhost refusal; no production code was modified to work around either limitation.
+- Existing user-device uncommitted date edits remain inaccessible and untouched. This clean checkout/worktree contains no such pending changes; valid 0006 dates remain accepted. No active laptop/session was overwritten.
+
+A final numeric round-trip regression was reproduced and fixed: small finite fees/percentages serialized with exponent notation now reimport without rejecting previously supported decimal values. Hexadecimal and nonfinite inputs remain rejected.

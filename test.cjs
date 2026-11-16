@@ -28,3 +28,91 @@ test('saved copies are versioned, bounded and fully revalidated',()=>{const raw=
 test('research CSV neutralizes formula injection without corrupting quotes',()=>{const r=research.validateRecord({...competitor,label:'=HYPERLINK("bad")',notes:' @SUM(1)'});const csv=research.csv([r]);assert.ok(csv.startsWith('\ufeff"type"'));assert.ok(csv.includes('"\'=HYPERLINK(""bad"")"'));assert.ok(csv.includes('"\'@SUM(1)"'));});
 test('research strips unknown properties from saved data',()=>{const r=research.validateRecord({...fee,apiKey:'not-a-key',__test:'unknown'});assert.equal(r.apiKey,undefined);assert.equal(r.__test,undefined);});
 test('release pages block inline scripts, objects, base changes and form submission',()=>{for(const name of ['index.html','listing.html','workspace.html','research.html']){const html=fs.readFileSync(name,'utf8');assert.match(html,/Content-Security-Policy/);assert.match(html,/object-src 'none'/);assert.match(html,/base-uri 'none'/);assert.match(html,/form-action 'none'/);assert.doesNotMatch(html,/<script>/);assert.doesNotMatch(html,/script-src[^;]*unsafe-inline/);}});
+
+test('V5 JSON backup round-trip retains V4 schema and sanitizes extra properties',()=>{
+  const records=[research.validateRecord(fee),research.validateRecord(competitor)];
+  const exported=research.backup(records);
+  assert.deepEqual(research.decode(exported),records);
+  assert.equal(JSON.parse(exported).version,4);
+  assert.equal(research.decode(research.backup([{...fee,unexpected:'discard'}]))[0].unexpected,undefined);
+});
+test('V5 JSON backup rejects invalid and oversized records',()=>{
+  assert.throws(()=>research.backup(Array(101).fill(fee)));
+  assert.throws(()=>research.backup([{...fee,source:'javascript:bad'}]));
+  assert.throws(()=>research.backup('not records'));
+});
+
+test('research rejects control-only required text and oversized canonical URLs',()=>{
+  assert.throws(()=>research.validateRecord({...fee,category:'\u0001'}));
+  assert.throws(()=>research.validateRecord({...fee,source:'https://example.com/'+ '界'.repeat(200)}));
+});
+test('research JSON byte bounds match file limits and reject malformed envelopes',()=>{
+  for(const raw of ['null','[]','{','x'.repeat(500001),JSON.stringify({version:4,records:[],padding:'界'.repeat(170000)})])assert.throws(()=>research.decode(raw));
+  assert.deepEqual(research.decode(research.backup([])),[]);
+});
+test('research dates preserve early years and leap dates without a recent-year cutoff',()=>{
+  assert.equal(research.validateRecord({...fee,checked:'0006-01-01',effective:'0004-02-29'}).checked,'0006-01-01');
+  assert.throws(()=>research.validateRecord({...fee,checked:'2025-02-29'}));
+});
+function researchUI(){
+ const nodes={},saved=new Map();let consent=true;
+ const make=()=>({value:'',files:[],children:[],events:{},textContent:'',addEventListener(k,fn){this.events[k]=fn;},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(){},click(){},remove(){},reset(){},focus(){}});
+ const document={getElementById(id){return nodes[id]??=make();},createElement:make,body:make()};
+ for(const type of ['fee','competitor']){const form=document.getElementById(type+'-form');form.fields={};form.elements={namedItem:name=>form.fields[name]??=make()};form.reset=()=>{for(const node of Object.values(form.fields))node.value='';};form.querySelector=()=>form.elements.namedItem(type==='fee'?'category':'label');}
+ class FormDataMock{constructor(form){this.form=form;}[Symbol.iterator](){return Object.entries(this.form.fields).map(([k,n])=>[k,n.value])[Symbol.iterator]();}}
+ const ctx={document,FormData:FormDataMock,window:{SellerPilotCSV:require('./csv-codec.js')},URL:class extends URL{static createObjectURL(){return 'blob:test';}static revokeObjectURL(){}},Blob:class{},TextEncoder,setTimeout:fn=>fn(),confirm:()=>consent,localStorage:{setItem(k,v){saved.set(k,v);},getItem:k=>saved.get(k)??null,removeItem:k=>saved.delete(k)}};
+ vm.runInNewContext(fs.readFileSync('research.js','utf8'),ctx);
+ return {nodes,saved,setConsent:v=>consent=v,submit(type,input){const form=nodes[type+'-form'];for(const [k,v]of Object.entries(input))form.elements.namedItem(k).value=String(v);form.events.submit({preventDefault(){},currentTarget:form});},importCSV:text=>nodes['import-csv'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.csv'}}),importFile:text=>nodes['import-json'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.json'}})};
+}
+test('research import cancellation and malformed files preserve tab and saved records',async()=>{
+ const ui=researchUI(),first=research.backup([fee]),second=research.backup([competitor]);
+ await ui.importFile(async()=>first);ui.nodes.save.onclick();const saved=[...ui.saved.values()][0];
+ ui.setConsent(false);await ui.importFile(async()=>second);assert.match(ui.nodes.records.children[0].children[0].textContent,/Amazon India/);
+ ui.setConsent(true);await ui.importFile(async()=>'{');assert.match(ui.nodes['workspace-status'].textContent,/Import rejected/);
+ assert.equal([...ui.saved.values()][0],saved);
+ await ui.importFile(async()=>second);assert.equal(ui.nodes.records.children[0].children[0].textContent,competitor.label);assert.equal([...ui.saved.values()][0],saved);
+});
+test('research rejects stale async imports after clear or a newer selection',async()=>{
+ const ui=researchUI();let finish;
+ const pending=ui.importFile(()=>new Promise(resolve=>finish=resolve));ui.nodes.clear.onclick();finish(research.backup([fee]));await pending;
+ assert.match(ui.nodes['workspace-status'].textContent,/Workspace changed/);assert.equal(ui.nodes.export.disabled,true);
+ const old=ui.importFile(()=>new Promise(resolve=>finish=resolve));await ui.importFile(async()=>research.backup([competitor]));finish(research.backup([fee]));await old;
+ assert.equal(ui.nodes.records.children[0].children[0].textContent,competitor.label);
+});
+test('Research CSV round trips both record types and reversible text while retaining legacy files',()=>{
+ const rows=[research.validateRecord({...fee,notes:"'=SUM(1)"}),research.validateRecord({...competitor,label:"''original, \"quote\"",notes:'=1+1'})];
+ assert.deepEqual(research.parseCSV(research.csv(rows)),rows);
+ const legacy=research.csv([research.validateRecord(fee)]).replace(',"csv_encoding"','').replace(',"apostrophe-v1"','');assert.deepEqual(research.parseCSV(legacy),[research.validateRecord(fee)]);
+ for(const text of ['','"unclosed','x'.repeat(500001),'界'.repeat(170000),research.csv(rows).replace('apostrophe-v1','bad'),research.csv(rows).replace('"Amazon India"','"=bad"'),research.csv(Array(101).fill(rows[0]))])assert.throws(()=>research.parseCSV(text));
+});
+test('Research CSV rejects malformed rows, formula prefixes, bad URLs and invalid numbers',()=>{
+ const safe=research.csv([research.validateRecord(fee)]);
+ for(const bad of [safe.replace('https://example.com/fees','javascript:alert(1)'),safe.replace('"Home"','"Home"junk'),safe.replace('"Home"','"\u0001=cmd"'),safe.replace('"1000"','"0x10"'),safe.replace('2026-01-02','2025-02-29')])assert.throws(()=>research.parseCSV(bad));
+ for(const value of ['0x10','1e999','NaN','Infinity','-1',''])assert.throws(()=>research.validateRecord({...fee,price:value}));
+});
+test('Research edit and cancel preserve records; removing an earlier row keeps the correct edit target',()=>{
+ const ui=researchUI();ui.submit('fee',fee);ui.submit('competitor',competitor);
+ ui.nodes.records.children[1].children.at(-2).onclick();ui.nodes['competitor-form'].elements.namedItem('label').value='Unsaved';ui.nodes['competitor-cancel'].onclick();assert.equal(ui.nodes.records.children[1].children[0].textContent,competitor.label);
+ ui.nodes.records.children[1].children.at(-2).onclick();ui.nodes.records.children[0].children.at(-1).onclick();ui.submit('competitor',{label:'Edited'});
+ assert.equal(ui.nodes.records.children.length,1);assert.equal(ui.nodes.records.children[0].children[0].textContent,'Edited');
+ ui.nodes.save.onclick();assert.equal(JSON.parse([...ui.saved.values()][0]).version,4);
+});
+test('Research can edit at capacity, rejects invalid edits and preserves duplicate imports',async()=>{
+ const ui=researchUI();await ui.importFile(async()=>research.backup(Array(100).fill(research.validateRecord(fee))));
+ ui.nodes.records.children[99].children.at(-2).onclick();ui.submit('fee',{category:'Changed'});assert.equal(ui.nodes.records.children.length,100);assert.match(ui.nodes.records.children[99].children[0].textContent,/Changed/);
+ ui.nodes.records.children[99].children.at(-2).onclick();ui.submit('fee',{source:'javascript:bad'});assert.match(ui.nodes.records.children[99].children[0].textContent,/Changed/);
+ ui.nodes['fee-cancel'].onclick();ui.submit('fee',fee);assert.match(ui.nodes['workspace-status'].textContent,/100 records/);
+ await ui.importCSV(async()=>research.csv([research.validateRecord(competitor),research.validateRecord(competitor)]));assert.equal(ui.nodes.records.children.length,2);assert.equal(ui.nodes['record-count'].textContent,'2/100 records');
+});
+test('Research CSV import is atomic, cancellable, and cannot replace newer records after a slow read',async()=>{
+ const ui=researchUI();ui.submit('fee',fee);ui.nodes.save.onclick();const saved=[...ui.saved.values()][0];
+ ui.setConsent(false);await ui.importCSV(async()=>research.csv([research.validateRecord(competitor)]));assert.match(ui.nodes.records.children[0].children[0].textContent,/Amazon India/);
+ ui.setConsent(true);await ui.importCSV(async()=>research.csv([research.validateRecord(competitor)]).replace('Observed','Unknown'));assert.match(ui.nodes.records.children[0].children[0].textContent,/Amazon India/);assert.equal([...ui.saved.values()][0],saved);
+ let finish;const pending=ui.importCSV(()=>new Promise(resolve=>finish=resolve));ui.submit('competitor',competitor);finish(research.csv([research.validateRecord(fee)]));await pending;assert.equal(ui.nodes.records.children.length,2);assert.match(ui.nodes['workspace-status'].textContent,/Workspace changed/);
+});
+test('research editing one form leaves the other unsaved draft intact',()=>{
+ const ui=researchUI();ui.nodes['competitor-form'].elements.namedItem('label').value='Separate draft';ui.submit('fee',fee);assert.equal(ui.nodes['competitor-form'].elements.namedItem('label').value,'Separate draft');
+});
+test('Research CSV preserves small finite numeric values serialized in exponent notation',()=>{
+ const row=research.validateRecord({...fee,fixed:0.0000001,percent:0.0000001});assert.deepEqual(research.parseCSV(research.csv([row])),[row]);assert.equal(research.validateRecord({...fee,price:'1e3'}).price,1000);
+});
