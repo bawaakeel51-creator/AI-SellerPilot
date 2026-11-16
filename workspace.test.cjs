@@ -30,7 +30,7 @@ function evidenceUI(initial=[],storageFails=false){
  const document={getElementById(id){return nodes[id]??=make();},createElement:make,body:make()};
  const form=document.getElementById('record-form');form.reset=()=>{form.onreset?.();for(const k of ['label','amount','source','checked','effective','fulfilment','notes'])document.getElementById(k).value='';document.getElementById('type').value='fee';document.getElementById('market').value='Amazon India';document.getElementById('basis').value='Observed';};form.reset();
  const localStorage={getItem:k=>saved.get(k)??null,setItem(k,v){if(storageFails)throw Error('full');saved.set(k,v);},removeItem(k){if(storageFails)throw Error('blocked');saved.delete(k);}};
- vm.runInNewContext(fs.readFileSync('workspace.js','utf8'),{document,URL:class extends URL{static createObjectURL(){return 'blob:test';}static revokeObjectURL(){}},Blob:class{},TextEncoder,localStorage,confirm:()=>consent,setTimeout:fn=>fn()});
+ vm.runInNewContext(fs.readFileSync('workspace.js','utf8'),{document,window:{SellerPilotCSV:require('./csv-codec.js')},URL:class extends URL{static createObjectURL(){return 'blob:test';}static revokeObjectURL(){}},Blob:class{},TextEncoder,localStorage,confirm:()=>consent,setTimeout:fn=>fn()});
  const fill=input=>{for(const [k,v]of Object.entries(input))if(nodes[k])nodes[k].value=String(v);};
  return {nodes,saved,fill,setConsent:v=>consent=v,submit(){form.onsubmit({preventDefault(){}});},edit(i){nodes.records.children[i].children[4].onclick();},remove(i){nodes.records.children[i].children[5].onclick();},importFile:text=>nodes['import-file'].onchange({target:{files:[{size:100,text}],value:'backup.csv'}})};
 }

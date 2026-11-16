@@ -20,7 +20,7 @@ The public free workspace and Google-authenticated private Studio are deployed. 
 | Order | Scope | Acceptance gate |
 | --- | --- | --- |
 | 1 | Owner-approved capped seller pilot and factuality evaluation | Consenting sellers; measure corrections, time saved and export usefulness; no automatic publishing |
-| 2 | Research JSON backup/import (Draft #17); editable evidence + CSV backup/import (Draft #19) | Implemented on feature branches; combined integration and owner merge approval required; preserve schemas/storage |
+| 2 | Research editing + JSON/CSV backup/import (Draft #17); editable evidence + CSV backup/import (Draft #19) | Implemented on feature branches; combined integration and owner merge approval required; preserve schemas/storage |
 | 3 | Offline settlement reconciliation | Synthetic normalized fixture/spec prepared in V5-NEXT-MILESTONE.md; parser/UI not implemented; real samples need consent and accounting review |
 | 4 | Verified marketplace fee sources and expiry reminders | Authorized data, category/slab/fulfilment fixtures and source dates; no guessed fees |
 | 5 | Optional secure account sync | Tenant isolation, retention, export/delete and recovery verified before migration |

@@ -1,6 +1,7 @@
 /* Versioned, manual evidence records. No requests, tracking or AI calls. */
 (function(){
 'use strict';
+const codec=typeof module!=='undefined'?require('./csv-codec.js'):window.SellerPilotCSV;
 const markets=['Amazon India','Flipkart','Meesho','Shopify / Own Store','Other'];
 const key='sellerpilot-evidence-v1';
 const columns=['version','type','market','label','amount','source','checked','effective','fulfilment','basis','notes'];
@@ -18,31 +19,17 @@ function record(input,today=new Date().toISOString().slice(0,10)){
  else {if(!['Observed','Estimated'].includes(input.basis))throw Error('Choose observed or estimated.');r.basis=input.basis;}
  return r;
 }
-function csv(rows){const cell=v=>'"'+(/^(?:'|[\s\u0000-\u001f]*[=+@-])/.test(String(v))?"'":'')+String(v??'').replaceAll('"','""')+'"';return '\ufeff'+[[...columns,'csv_encoding'],...rows.map(r=>[...columns.map(k=>r[k]),'apostrophe-v1'])].map(r=>r.map(cell).join(',')).join('\r\n');}
+function csv(rows){return '\ufeff'+[[...columns,'csv_encoding'],...rows.map(r=>[...columns.map(k=>r[k]),'apostrophe-v1'])].map(row=>row.map(codec.cell).join(',')).join('\r\n');}
 function parseCSV(input){
- if(typeof input!=='string'||new TextEncoder().encode(input).length>1000000)throw Error('CSV file is too large or unreadable (maximum 1 MB).');
- const source=input.replace(/^\ufeff/,'');const rows=[];let row=[],field='',quoted=false,afterQuote=false,lastWasNewline=false;
- for(let i=0;i<source.length;i++){
-  const c=source[i];
-  if(quoted){if(c==='"'){if(source[i+1]==='"'){field+='"';i++;}else{quoted=false;afterQuote=true;}}else field+=c;lastWasNewline=false;continue;}
-  if(afterQuote){if(c===','){row.push(field);field='';afterQuote=false;lastWasNewline=false;continue;}if(c==='\n'||(c==='\r'&&source[i+1]==='\n')){row.push(field);rows.push(row);if(rows.length>101)throw Error('CSV backup exceeds the 100-record limit.');row=[];field='';afterQuote=false;if(c==='\r')i++;lastWasNewline=true;continue;}throw Error('Malformed CSV: unexpected content after a quoted field.');}
-  if(c==='"'){if(field.length)throw Error('Malformed CSV: quotes must start a field.');quoted=true;lastWasNewline=false;continue;}
-  if(c===','){row.push(field);field='';lastWasNewline=false;continue;}
-  if(c==='\n'||(c==='\r'&&source[i+1]==='\n')){row.push(field);rows.push(row);if(rows.length>101)throw Error('CSV backup exceeds the 100-record limit.');row=[];field='';if(c==='\r')i++;lastWasNewline=true;continue;}
-  if(c==='\r')throw Error('Malformed CSV: use LF or CRLF line endings.');
-  field+=c;lastWasNewline=false;
- }
- if(quoted)throw Error('Malformed CSV: unclosed quoted field.');
- if(row.length||field.length||afterQuote||!lastWasNewline){row.push(field);rows.push(row);}
+ const rows=codec.parse(input,1000000);
  const encoded=rows[0]?.length===columns.length+1&&rows[0][columns.length]==='csv_encoding';
  if(!rows.length||(!encoded&&rows[0].length!==columns.length)||columns.some((name,i)=>rows[0][i]!==name))throw Error('Unsupported CSV columns. Select a SellerPilot evidence backup.');
  if(rows.length<2)throw Error('CSV backup contains no records.');
  if(rows.length-1>100)throw Error('CSV backup exceeds the 100-record limit.');
  return rows.slice(1).map((cells,i)=>{
   if(cells.length!==columns.length+(encoded?1:0))throw Error(`Malformed CSV: record ${i+1} has the wrong number of columns.`);
-  for(const value of cells)if(/^[\s\u0000-\u001f]*[=+@-]/.test(value))throw Error(`CSV formula rejected in record ${i+1}. Exported spreadsheet formulas are not accepted.`);
   if(encoded&&cells[columns.length]!=='apostrophe-v1')throw Error(`Unsupported CSV text encoding in row ${i+1}.`);
-  const restored=cells.slice(0,columns.length).map(value=>value.startsWith("'")&&(encoded?/^(?:'|[\s\u0000-\u001f]*[=+@-])/:/^[\s\u0000-\u001f]*[=+@-]/).test(value.slice(1))?value.slice(1):value);
+  const restored=cells.slice(0,columns.length).map(value=>codec.restore(value,encoded));
   const [version,type,market,label,amount,sourceUrl,checked,effective,fulfilment,basis,notes]=restored;
   if(version!=='1')throw Error(`Unsupported record version in row ${i+1}.`);
   if(type==='fee'&&basis!=='Seller-entered fee; not automatically verified')throw Error(`Malformed fee basis in row ${i+1}.`);
@@ -68,6 +55,6 @@ $('cancel-edit').onclick=clearEditor;
 $('remember').onchange=()=>{if($('remember').checked){status('Saving enabled on this browser. Avoid shared devices.');persist();}else{try{localStorage.removeItem(key);status('Saved copy removed. Current records remain until reload.');}catch{status('Could not remove saved copy. Clear this site’s browser data.');}}};
 $('delete').onclick=()=>{if(!confirm('Delete all tab and saved evidence records? Export a backup first if needed.'))return;try{localStorage.removeItem(key);records=[];$('remember').checked=false;clearEditor();render();status('All workspace records deleted from this browser.');}catch{status('Deletion failed. Clear this site’s browser data.');}};
 $('export').onclick=()=>{if(!records.length)return;const u=URL.createObjectURL(new Blob([csv(records)],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='sellerpilot-evidence.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);status('CSV backup download started.');};
-$('import-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;const before=revision,request=++importRequest;try{if(file.size>1000000)throw Error('CSV file is too large (maximum 1 MB).');const imported=parseCSV(await file.text());if(before!==revision||request!==importRequest)throw Error('Workspace changed while reading. Select the backup again.');if(records.length+imported.length>100)throw Error('Import would exceed the 100-record limit. No records were added.');records.push(...imported);render();status(`Imported ${imported.length} validated record${imported.length===1?'':'s'}.`);persist();}catch(error){status(error.message||'CSV import failed. Current records were preserved.');}finally{e.target.value='';}};
+$('import-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;const before=revision,request=++importRequest;try{if(file.size>1000000)throw Error('CSV file is too large (maximum 1 MB).');status('Reading and validating CSV backup…');const imported=parseCSV(await file.text());if(before!==revision||request!==importRequest)throw Error('Workspace changed while reading. Select the backup again.');if(records.length+imported.length>100)throw Error('Import would exceed the 100-record limit. No records were added.');records.push(...imported);render();status(`Imported ${imported.length} validated record${imported.length===1?'':'s'}.`);persist();}catch(error){status(error.message||'CSV import failed. Current records were preserved.');}finally{e.target.value='';}};
 fields();render();
 })();
