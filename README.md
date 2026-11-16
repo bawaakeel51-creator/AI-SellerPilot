@@ -18,7 +18,7 @@ Serve with `python3 -m http.server 8765`. Open `http://localhost:8765/`. Run `no
 
 ## Data and security
 
-Calculations and product/research inputs are processed locally. Research records are not persisted until **Save on this device** is clicked; **Load device copy** explicitly restores them. Clearing the tab does not delete the saved copy. **Delete device copy** deletes only this app's research storage key. Evidence CSV is a local review/backup format; import validates every record and adds it to the current list, with a 1 MB file and 100-record limit. There is no cloud sync. Do not store secrets or personal information, especially on shared devices.
+Calculations and product/research inputs are processed locally. Research records are not persisted until **Save on this device** is clicked; **Load device copy** explicitly restores them. Clearing the tab does not delete the saved copy. **Delete device copy** deletes only this app's research storage key. CSV is a review/backup format; import and cloud sync are not implemented. There is a 100-record limit. Do not store secrets or personal information, especially on shared devices.
 
 The existing profit-page Cloudflare analytics integration remains enabled and is disclosed. Feedback links open Google Forms. No research URL is fetched. Sources remain user-supplied and unverified. A Cloudflare analytics site identifier is public configuration, not an AI API key.
 
@@ -57,3 +57,7 @@ Gemini credentials remain in encrypted Worker secrets. The provider key is sent 
 Run Wrangler from `backend/`. `build-studio.mjs` generates private assets from the existing Listing Studio. The main-only deployment workflow runs regression checks and forces `AI_ENABLED=false`. Its encrypted GitHub credential is restricted to this Worker. `keep_vars=true` preserves dashboard variables; do not replace the Gemini secret or alter other projects. The public `ai-config.js` keeps its API URL empty.
 
 A separately approved one-call live test passed after temporary owner-only activation; the switch was immediately restored and the disabled API response verified. No live-provider test can pass through the endpoint while AI_ENABLED=false. Do not create a diagnostic endpoint that bypasses this switch or copy the encrypted provider key elsewhere. A controlled real test needs explicit owner approval for temporary activation under the existing single-account allowlist, followed immediately by disabling it again. [V4-RELEASE.md](V4-RELEASE.md) defines the test and rollback plan. Public access, additional accounts, billing and paid services require separate approval.
+
+## V5 Draft work
+
+PR #19 adds local evidence editing/cancel, validated additive CSV import (100 total records, 1 MB UTF-8), reversible spreadsheet escaping and deletion confirmation. Evidence storage key/schema stay unchanged; import may add duplicate rows. Research JSON backup/import is separately proposed in PR #17. Both remain Draft and are absent from the live release until approved and merged. See `V5-AUDIT.md` for integration/readiness and `V5-NEXT-MILESTONE.md` for the fixture-only next contract.

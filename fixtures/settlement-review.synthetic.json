@@ -1,0 +1,13 @@
+{
+  "schema": "sellerpilot-settlement-review-proposal-v1",
+  "synthetic": true,
+  "currency": "INR",
+  "unit": "paise",
+  "warning": "Invented arithmetic examples only; not marketplace fees, tax advice or seller evidence.",
+  "rows": [
+    {"reference":"SYNTH-MATCH","gross":100000,"refund":0,"fee":10000,"taxWithheld":1000,"adjustment":0,"actualPaid":89000,"expectedNet":89000,"difference":0},
+    {"reference":"SYNTH-UNDER","gross":100000,"refund":0,"fee":10000,"taxWithheld":1000,"adjustment":0,"actualPaid":88000,"expectedNet":89000,"difference":-1000},
+    {"reference":"SYNTH-OVER","gross":100000,"refund":0,"fee":10000,"taxWithheld":1000,"adjustment":0,"actualPaid":90000,"expectedNet":89000,"difference":1000},
+    {"reference":"SYNTH-REFUND","gross":100000,"refund":100000,"fee":0,"taxWithheld":0,"adjustment":-500,"actualPaid":-500,"expectedNet":-500,"difference":0}
+  ]
+}
