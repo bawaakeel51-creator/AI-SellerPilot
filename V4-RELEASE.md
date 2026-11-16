@@ -65,3 +65,7 @@ If approved:
 5. In all outcomes immediately restore `AI_ENABLED=false`, verify the Studio disabled response, and confirm the public tools remain unchanged. On interruption, prioritize rollback before other work.
 
 A real failure-handling test may require an isolated, separately approved environment; do not pretend mocked errors are real-provider failures. Public AI enablement or paid services remain separately unapproved.
+
+## V5 audit boundary — 16 November 2026 (India)
+
+Safe local-data feature work remains in Draft PRs #17/#19. See V5-AUDIT.md on the V5 evidence branch for actual new test evidence, integration checks, known limits and approval/rollback sequence. This does not change the V4 runtime, existing pre-release or the outstanding public real-AI gates above. No further Gemini call or activation was performed.
