@@ -88,7 +88,7 @@ test('Research CSV round trips both record types and reversible text while retai
 test('Research CSV rejects malformed rows, formula prefixes, bad URLs and invalid numbers',()=>{
  const safe=research.csv([research.validateRecord(fee)]);
  for(const bad of [safe.replace('https://example.com/fees','javascript:alert(1)'),safe.replace('"Home"','"Home"junk'),safe.replace('"Home"','"\u0001=cmd"'),safe.replace('"1000"','"0x10"'),safe.replace('2026-01-02','2025-02-29')])assert.throws(()=>research.parseCSV(bad));
- for(const value of ['0x10','1e3','NaN','Infinity','-1',''])assert.throws(()=>research.validateRecord({...fee,price:value}));
+ for(const value of ['0x10','1e999','NaN','Infinity','-1',''])assert.throws(()=>research.validateRecord({...fee,price:value}));
 });
 test('Research edit and cancel preserve records; removing an earlier row keeps the correct edit target',()=>{
  const ui=researchUI();ui.submit('fee',fee);ui.submit('competitor',competitor);
@@ -112,4 +112,7 @@ test('Research CSV import is atomic, cancellable, and cannot replace newer recor
 });
 test('research editing one form leaves the other unsaved draft intact',()=>{
  const ui=researchUI();ui.nodes['competitor-form'].elements.namedItem('label').value='Separate draft';ui.submit('fee',fee);assert.equal(ui.nodes['competitor-form'].elements.namedItem('label').value,'Separate draft');
+});
+test('Research CSV preserves small finite numeric values serialized in exponent notation',()=>{
+ const row=research.validateRecord({...fee,fixed:0.0000001,percent:0.0000001});assert.deepEqual(research.parseCSV(research.csv([row])),[row]);assert.equal(research.validateRecord({...fee,price:'1e3'}).price,1000);
 });
