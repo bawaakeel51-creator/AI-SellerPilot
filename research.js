@@ -48,7 +48,11 @@ function editRecord(index){
  form.querySelector('input').focus();status('Editing a tab record. Save on this device after updating to persist it.');
 }
 for(const type of ['fee','competitor']){
- $(type+'-cancel').onclick=()=>{clearEditor();status('Edit cancelled. Records unchanged.');};
+ $(type+'-cancel').onclick=()=>{
+  $(type+'-submit').focus();
+  clearEditor();
+  status('Edit cancelled. Records unchanged.');
+ };
  $(type+'-form').addEventListener('submit',e=>{e.preventDefault();try{
   if(editing&&editing.type!==type)throw Error('Save or cancel the active edit first.');
   if(!editing&&records.length>=100)throw Error('Maximum 100 records. Export and clear before adding more.');
@@ -69,7 +73,10 @@ for(const format of ['json','csv'])$('import-'+format).addEventListener('change'
   if(file.size>500000)throw Error('Backup is too large (maximum 500 KB UTF-8).');
   status('Reading and validating backup…');const raw=await file.text(),imported=format==='json'?decode(raw):parseCSV(raw);
   if(before!==revision||request!==importRequest)throw Error('Workspace changed while reading. Select the backup again.');
-  if(!confirm('Replace current tab records with '+imported.length+' imported records (including any duplicate rows)? Unsaved form edits will be discarded. Saved device copy stays unchanged until Save.'))return;
+  if(!confirm('Replace current tab records with '+imported.length+' imported records (including any duplicate rows)? Unsaved form edits will be discarded. Saved device copy stays unchanged until Save.')){
+   status('Import cancelled. Tab records and saved device copy unchanged.');
+   return;
+  }
   records=imported;clearEditor('all');render();status('Imported '+records.length+' validated records into this tab. Save on this device to persist.');
  }catch(err){status('Import rejected: '+err.message+' Existing records were preserved.');}
 });

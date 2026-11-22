@@ -56,18 +56,19 @@ test('research dates preserve early years and leap dates without a recent-year c
 });
 function researchUI(){
  const nodes={},saved=new Map();let consent=true;
- const make=()=>({value:'',files:[],children:[],events:{},textContent:'',addEventListener(k,fn){this.events[k]=fn;},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(){},click(){},remove(){},reset(){},focus(){}});
+ const make=()=>({value:'',files:[],children:[],events:{},textContent:'',addEventListener(k,fn){this.events[k]=fn;},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(){},click(){},remove(){},reset(){},focus(){document.activeElement=this;}});
  const document={getElementById(id){return nodes[id]??=make();},createElement:make,body:make()};
  for(const type of ['fee','competitor']){const form=document.getElementById(type+'-form');form.fields={};form.elements={namedItem:name=>form.fields[name]??=make()};form.reset=()=>{for(const node of Object.values(form.fields))node.value='';};form.querySelector=()=>form.elements.namedItem(type==='fee'?'category':'label');}
  class FormDataMock{constructor(form){this.form=form;}[Symbol.iterator](){return Object.entries(this.form.fields).map(([k,n])=>[k,n.value])[Symbol.iterator]();}}
  const ctx={document,FormData:FormDataMock,window:{SellerPilotCSV:require('./csv-codec.js')},URL:class extends URL{static createObjectURL(){return 'blob:test';}static revokeObjectURL(){}},Blob:class{},TextEncoder,setTimeout:fn=>fn(),confirm:()=>consent,localStorage:{setItem(k,v){saved.set(k,v);},getItem:k=>saved.get(k)??null,removeItem:k=>saved.delete(k)}};
  vm.runInNewContext(fs.readFileSync('research.js','utf8'),ctx);
- return {nodes,saved,setConsent:v=>consent=v,submit(type,input){const form=nodes[type+'-form'];for(const [k,v]of Object.entries(input))form.elements.namedItem(k).value=String(v);form.events.submit({preventDefault(){},currentTarget:form});},importCSV:text=>nodes['import-csv'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.csv'}}),importFile:text=>nodes['import-json'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.json'}})};
+ return {nodes,saved,focused:()=>document.activeElement,setConsent:v=>consent=v,submit(type,input){const form=nodes[type+'-form'];for(const [k,v]of Object.entries(input))form.elements.namedItem(k).value=String(v);form.events.submit({preventDefault(){},currentTarget:form});},importCSV:text=>nodes['import-csv'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.csv'}}),importFile:text=>nodes['import-json'].events.change({currentTarget:{files:[{size:100,text}],value:'backup.json'}})};
 }
 test('research import cancellation and malformed files preserve tab and saved records',async()=>{
  const ui=researchUI(),first=research.backup([fee]),second=research.backup([competitor]);
  await ui.importFile(async()=>first);ui.nodes.save.onclick();const saved=[...ui.saved.values()][0];
  ui.setConsent(false);await ui.importFile(async()=>second);assert.match(ui.nodes.records.children[0].children[0].textContent,/Amazon India/);
+ assert.match(ui.nodes['workspace-status'].textContent,/Import cancelled/);
  ui.setConsent(true);await ui.importFile(async()=>'{');assert.match(ui.nodes['workspace-status'].textContent,/Import rejected/);
  assert.equal([...ui.saved.values()][0],saved);
  await ui.importFile(async()=>second);assert.equal(ui.nodes.records.children[0].children[0].textContent,competitor.label);assert.equal([...ui.saved.values()][0],saved);
@@ -93,6 +94,7 @@ test('Research CSV rejects malformed rows, formula prefixes, bad URLs and invali
 test('Research edit and cancel preserve records; removing an earlier row keeps the correct edit target',()=>{
  const ui=researchUI();ui.submit('fee',fee);ui.submit('competitor',competitor);
  ui.nodes.records.children[1].children.at(-2).onclick();ui.nodes['competitor-form'].elements.namedItem('label').value='Unsaved';ui.nodes['competitor-cancel'].onclick();assert.equal(ui.nodes.records.children[1].children[0].textContent,competitor.label);
+ assert.equal(ui.focused(),ui.nodes['competitor-submit']);
  ui.nodes.records.children[1].children.at(-2).onclick();ui.nodes.records.children[0].children.at(-1).onclick();ui.submit('competitor',{label:'Edited'});
  assert.equal(ui.nodes.records.children.length,1);assert.equal(ui.nodes.records.children[0].children[0].textContent,'Edited');
  ui.nodes.save.onclick();assert.equal(JSON.parse([...ui.saved.values()][0]).version,4);
