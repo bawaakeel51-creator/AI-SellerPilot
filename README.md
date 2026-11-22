@@ -5,7 +5,7 @@ Static seller tools for Amazon India, Flipkart and Meesho, with labelled profit 
 - `index.html` / `calculator.js`: profit planner, GST/ITC assumptions, return buffer, break-even and CSV.
 - `listing.html` / `listing.js`: factual template drafts, titles, bullets, descriptions, input-based keywords, TXT/CSV.
 - `research.html` / `research.js`: versioned manual fee schedules, source/effective/check dates, percentage + fixed fee estimates, observed/estimated competitor prices and comparison, explicit local save/load/delete and CSV export.
-- `workspace.html` / `workspace.js`: preserves the existing V4 Pilot evidence records, source links, optional persistence and CSV. Its existing storage key and schema remain unchanged.
+- `workspace.html` / `workspace.js`: preserves the existing V4 Pilot evidence records, source links, optional persistence and CSV. Records can be edited; validated SellerPilot CSV backups can be imported locally. Its existing storage key and schema remain unchanged.
 - `qa-preview.html`: same-origin responsive viewport harness.
 
 **Public AI is OFF.** The public GitHub Pages tools remain static and template-based. A separate owner-only Google-authenticated Worker Studio is deployed; `AI_ENABLED=false` prevents provider calls. Authentication, exports and mobile checks pass, and one approved owner-only real Gemini call passed before the switch was restored OFF. Production quota-negative and real provider-error verification remain pending. V4 is **not yet complete as a real-AI release**. See [V4-RELEASE.md](V4-RELEASE.md) for evidence and the approval gate.
@@ -22,7 +22,7 @@ Calculations and product/research inputs are processed locally. Research records
 
 The existing profit-page Cloudflare analytics integration remains enabled and is disclosed. Feedback links open Google Forms. No research URL is fetched. Sources remain user-supplied and unverified. A Cloudflare analytics site identifier is public configuration, not an AI API key.
 
-Inputs and restored records are validated, output uses text rendering, CSV formula prefixes are neutralized, URLs require HTTPS without embedded credentials, and page CSP blocks inline scripts, objects, base URL changes and form submissions. These checks do not certify marketplace compliance or factual accuracy.
+Inputs and restored/imported records are validated, output uses text rendering, CSV formula prefixes are neutralized on export and rejected on import, URLs require HTTPS without embedded credentials, and page CSP blocks inline scripts, objects, base URL changes and form submissions. These checks do not certify marketplace compliance or factual accuracy.
 
 ## Profit assumptions
 
@@ -57,3 +57,7 @@ Gemini credentials remain in encrypted Worker secrets. The provider key is sent 
 Run Wrangler from `backend/`. `build-studio.mjs` generates private assets from the existing Listing Studio. The main-only deployment workflow runs regression checks and forces `AI_ENABLED=false`. Its encrypted GitHub credential is restricted to this Worker. `keep_vars=true` preserves dashboard variables; do not replace the Gemini secret or alter other projects. The public `ai-config.js` keeps its API URL empty.
 
 A separately approved one-call live test passed after temporary owner-only activation; the switch was immediately restored and the disabled API response verified. No live-provider test can pass through the endpoint while AI_ENABLED=false. Do not create a diagnostic endpoint that bypasses this switch or copy the encrypted provider key elsewhere. A controlled real test needs explicit owner approval for temporary activation under the existing single-account allowlist, followed immediately by disabling it again. [V4-RELEASE.md](V4-RELEASE.md) defines the test and rollback plan. Public access, additional accounts, billing and paid services require separate approval.
+
+## V5 Draft work
+
+PR #19 adds local evidence editing/cancel, validated additive CSV import (100 total records, 1 MB UTF-8), reversible spreadsheet escaping and deletion confirmation. Evidence storage key/schema stay unchanged; import may add duplicate rows. Research editing and JSON/CSV backup/import are separately proposed in PR #17. Both branches include an identical shared CSV codec and retain independent schemas. Both remain Draft and are absent from the live release until approved and merged. See `V5-AUDIT.md` for integration/readiness and `V5-NEXT-MILESTONE.md` for the fixture-only next contract.

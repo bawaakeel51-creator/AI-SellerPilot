@@ -1,6 +1,6 @@
 # AI SellerPilot roadmap
 
-## Current V4 status — 11 November 2026 (India)
+## Current V4 status — audited 16 November 2026 (India)
 
 The public free workspace and Google-authenticated private Studio are deployed. PR #13 supplies nonce/CSRF-protected Google sessions; PR #14 fixes Cloudflare canonical login routing. Existing Calculator, Listing Studio, Research, Evidence Workspace, local storage and downloads are preserved.
 
@@ -10,18 +10,18 @@ The public free workspace and Google-authenticated private Studio are deployed. 
 
 ## Finish V4 before declaring release complete
 
-1. Obtain approval for a tightly scoped temporary owner-only provider test with an immediate rollback to AI disabled.
+1. The approved one-call owner-only provider test is complete and AI was restored OFF. Any further live test needs new scoped approval; do not repeat the completed call.
 2. The first real draft and human-review label are observed; complete the remaining production quota-negative/account-isolation checks under a separately approved plan. Confirm authentication/CSRF and account isolation remain enforced. Stop on provider/quota/security errors; do not retry blindly.
 3. Validate actual provider-error behavior without leaking upstream payloads or credentials. Existing mocked outage/timeout/malformed-output tests remain the baseline; do not damage or replace the production secret to induce an error.
 4. Restore and independently verify `AI_ENABLED=false` even on failure. Record observed results before changing the V4 release status. Any public AI activation requires separate approval.
 
-## V5 priorities (proposed; not implemented)
+## V5 priorities and implementation state
 
 | Order | Scope | Acceptance gate |
 | --- | --- | --- |
 | 1 | Owner-approved capped seller pilot and factuality evaluation | Consenting sellers; measure corrections, time saved and export usefulness; no automatic publishing |
-| 2 | Editable/importable evidence records and backup UX | Preserve existing schema/storage; reject malformed imports and unsafe CSV values |
-| 3 | Consented settlement CSV reconciliation | Anonymized fixtures, traceable deductions and qualified tax/accounting review |
+| 2 | Research editing + JSON/CSV backup/import (Draft #17); editable evidence + CSV backup/import (Draft #19) | Implemented on feature branches; combined integration and owner merge approval required; preserve schemas/storage |
+| 3 | Offline settlement reconciliation | Synthetic normalized fixture/spec prepared in V5-NEXT-MILESTONE.md; parser/UI not implemented; real samples need consent and accounting review |
 | 4 | Verified marketplace fee sources and expiry reminders | Authorized data, category/slab/fulfilment fixtures and source dates; no guessed fees |
 | 5 | Optional secure account sync | Tenant isolation, retention, export/delete and recovery verified before migration |
 
