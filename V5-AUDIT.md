@@ -67,3 +67,24 @@ PR #18 is already merged (14 November 2026, `29a845b`); it is documentation, not
 Visual/mobile blockers: installed headless Chromium fails during launch with a forbidden socket operation. A separate native desktop Chromium opened, but the staged local file was blocked by managed browser policy. That policy was not bypassed. Consequently 320/375/768px rendered layout, visual inspection, actual browser downloads/import and keyboard navigation for these latest changes remain pending. CSS labels, focus styles, breakpoints, bounded file controls, live-region messages and hidden-state rules were inspected; simulated-DOM tests are not browser rendering evidence. No unbounded preview server was started or left running in this follow-up.
 
 No runtime dependencies were installed. No live Google sign-in/provider calls, billing, deployment or production configuration change occurred. The previously recorded production quota/provider-error gates remain pending. Staged mobile/browser verification is the exact next safe action, followed only by separately approved ready/merge actions. The safe implementation is ready for code review with these explicit visual/live limits; it is not an unconditional release approval.
+
+## First customer beta follow-up — 23 November 2026 (India)
+
+- Both workspaces return keyboard focus to the form's primary button when cancelling an edit. Research reports when a backup import is cancelled. Evidence asks before replacing an active unsaved edit.
+- Keep the release on hold until the exact candidate passes the browser acceptance checks below. The managed Chromium process could not launch because its required socket is denied. Available desktop and cloud browsers could not connect to the private loopback preview.
+- Use a fresh local clone or checkout for acceptance testing. Keep the existing laptop directory and its uncommitted edits intact. Use a separate browser profile or a fresh loopback port and test only with synthetic records.
+
+### Browser acceptance
+
+1. Combine the reviewed #17 and #19 heads in a disposable local checkout. From its root, serve it with `py -m http.server 8765 --bind 127.0.0.1` on Windows. Open `http://127.0.0.1:8765/research.html` and `http://127.0.0.1:8765/workspace.html`. Stop the server with Ctrl+C after QA.
+2. In Chrome or Edge DevTools, set the responsive CSS viewport to 320, 375 and 768 px for each page. Inspect empty and populated states, long labels and URLs, file controls, action buttons, focus outlines and horizontal overflow. Record the tested browser and widths.
+3. Use Tab, Shift+Tab, Enter and Space to navigate forms and action buttons. Check focus on Edit and Cancel, visible focus, validation messages, confirmation cancellation and access to file controls. Confirm a declined Evidence edit switch preserves the unsaved draft.
+4. Download actual Research JSON and CSV and Evidence CSV files. Use the file inputs to import those same files. Include both record types, commas, quotes, Unicode and multiline notes. Verify Research Cancel preserves tab and saved records, accepting replaces only the tab, and Save followed by reload and Load restores the device copy. Verify Evidence appends duplicates and the Remember option survives reload. Try a malformed or wrong-workspace backup and verify no records change.
+5. On the combined candidate, smoke-test calculator totals, Listing Studio templates and TXT/CSV downloads. Review browser errors. Record successful checks against the exact PR heads and combined tree.
+
+### Approval and rollback
+
+1. Verify the latest exact PR heads, successful GitHub Actions and compatibility against current main. Obtain explicit approval covering any automatic GitHub Pages deployment before merging #17, then #19. Recheck #19 against the updated main after #17. Keep the public AI endpoint disabled and preserve the V4 release and Worker settings.
+2. Before rollout, retain a copy of the deployed revision and export Research JSON and Evidence CSV on devices holding records. Start with one consenting seller using synthetic or non-sensitive data. Explain device-only storage, manual fee/source validation, and how to share feedback without including sensitive records.
+3. For a rollout regression, pause invitations. Revert the affected merge through a reviewed PR, using reverse merge order if rolling back both. Verify the prior public static experience after the approved Pages update. Preserve browser storage keys and downloaded files. Do not force-reset main or clear user browser data.
+4. Public AI and paid SaaS have separate release gates. Live account isolation, quota enforcement and provider failure handling still require authorized verification before AI exposure. Payments, privacy and security must be verified before charging. Seller feedback is pending.
