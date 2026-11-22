@@ -12,7 +12,8 @@ function buildDraft(input) {
  if (!Object.hasOwn(markets,input.market)) throw Error('Choose a supported marketplace.');
  for (const [key,max] of Object.entries(limits)) if (String(input[key] || '').length > max) throw Error(`${key}: maximum ${max} characters.`);
  const get = key => clean(input[key]);
- if (!get('name')) throw Error('Product name is required.');
+ const name = get('name');
+ if (!name) throw Error('Product name is required.');
  if (!input.confirmed) throw Error('Confirm the product facts before generating.');
  const q = get('quantity');
  if (q && (!/^\d+$/.test(q) || Number(q)<1 || Number(q)>10000)) throw Error('Pack quantity must be a whole number from 1 to 10000.');
@@ -20,7 +21,10 @@ function buildDraft(input) {
  if (features.length > 10) throw Error('Use no more than 10 feature lines.');
  const facts = [['Material','material'],['Colour','colour'],['Size','size']].filter(([,key])=>get(key)).map(([label,key])=>`${label}: ${get(key)}`);
  if (q) facts.push(`Pack quantity: ${Number(q)}`);
- const title = [get('brand'), get('name'), get('material'), get('colour'),get('size'),q ? `Pack of ${Number(q)}` : ''].filter(Boolean).join(' | ');
+ const hasMatchingPack = q && [...name.matchAll(/\bpack of (\d+)\b(?![.,]\d)/gi)]
+  .some(([, quantity]) => Number(quantity) === Number(q));
+ const packTitle = q && !hasMatchingPack ? `Pack of ${Number(q)}` : '';
+ const title = [get('brand'), name, get('material'), get('colour'), get('size'), packTitle].filter(Boolean).join(' | ');
  // No invented benefits, omitted facts or silently truncated titles.
  if (title.length>180) throw Error('Combined title exceeds this tool’s 180-character draft limit. Shorten name or attributes.');
  const bullets = [...facts,...features];

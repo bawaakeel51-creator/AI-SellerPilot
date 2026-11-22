@@ -7,6 +7,20 @@ const base={market:'Amazon India',name:'Desk organiser',brand:'Sample',material:
 for(const market of ['Amazon India','Flipkart','Meesho'])test(`${market}: factual output and exports`,()=>{const d=buildDraft({...base,market});assert.equal(d.market,market);assert.ok(d.title.includes('Pack of 2'));assert.ok(d.description.includes('Three compartments'));assert.equal(d.keywords,'desk organiser, stationery holder');assert.ok(toTXT(d).includes('Flat base'));assert.ok(toCSV(d).startsWith('\ufeff"Marketplace"'));assert.ok(!toTXT(d).includes('waterproof'));if(market==='Amazon India')assert.equal(d.bullets.length,5);});
 test('blank, invalid, oversized and unconfirmed data rejected',()=>{for(const input of [{name:' '},{confirmed:false},{quantity:'0'},{quantity:'1.2'},{quantity:'-1'},{quantity:'1e3'},{quantity:'10001'},{market:'Other'},{features:Array(11).fill('Feature').join('\n')},{name:'x'.repeat(121)},{brand:'a'.repeat(70),name:'b'.repeat(120)}])assert.throws(()=>buildDraft({...base,...input}));});
 test('minimal facts do not invent attributes',()=>{const d=buildDraft({market:'Meesho',name:'Ring',confirmed:true});assert.equal(d.title,'Ring');assert.deepEqual(d.bullets,[]);assert.equal(d.description,'Ring');});
+test('matching pack quantity appears once in the template title and exports',()=>{
+ const name='Kitchen Floor Mat Pack of 2';
+ const input={market:'Amazon India',name,quantity:'2',confirmed:true};
+ const draft=buildDraft(input);
+ assert.equal(draft.title,name);
+ assert.deepEqual(draft.bullets,['Pack quantity: 2']);
+ assert.equal(draft.description,`${name}\nPack quantity: 2`);
+ assert.ok(toTXT(draft).includes(`Title: ${name}\n`));
+ assert.ok(toCSV(draft).includes(`"Amazon India","${name}",`));
+ const lowerCaseName='Kitchen Floor Mat pack of 2';
+ assert.equal(buildDraft({...input,name:lowerCaseName}).title,lowerCaseName);
+ const differentPack='Kitchen Floor Mat Pack of 20';
+ assert.equal(buildDraft({...input,name:differentPack}).title,`${differentPack} | Pack of 2`);
+});
 test('CSV preserves commas, quotes, Unicode and newlines, neutralizes formulas',()=>{assert.equal(csvCell('=1+1'),'"\'=1+1"');assert.equal(csvCell('  @SUM(A1)'),'"\'  @SUM(A1)"');assert.equal(csvCell('a,"b"\nc'),'"a,""b""\nc"');const d=buildDraft({...base,name:'Chai, "cup" ₹',features:'Line one\nLine two'});assert.ok(toCSV(d).includes('Chai, ""cup"" ₹'));assert.ok(toTXT(d).includes('₹'));});
 function dom(){const nodes={};let downloads=[];class BlobMock{constructor(parts,options){this.parts=parts;this.options=options;downloads.push(this);}}const document={getElementById(id){if(!nodes[id])nodes[id]={value:'',textContent:'',innerHTML:'',checked:false,disabled:false,events:{},addEventListener(e,fn){this.events[e]=fn;}};return nodes[id];},createElement(){return {click(){},remove(){}};},body:{append(){}}};return {nodes,downloads,document,Blob:BlobMock,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn(),TextEncoder,console};}
 function calculator(values={}){const ctx=dom();const html=fs.readFileSync(require.resolve('./index.html'),'utf8');for(const match of html.matchAll(/<input id="([^"]+)"[^>]*value="([^"]*)"/g))ctx.document.getElementById(match[1]).value=match[2];ctx.document.getElementById('market').value='Amazon India';for(const [key,value] of Object.entries(values))ctx.document.getElementById(key).value=String(value);vm.createContext(ctx);vm.runInContext(fs.readFileSync(require.resolve('./calculator.js'),'utf8'),ctx);return {ctx,latest:()=>vm.runInContext('latest',ctx)};}
