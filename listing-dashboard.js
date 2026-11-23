@@ -2,7 +2,7 @@
 
 const menuToggle = document.getElementById('menu-toggle');
 const toolNav = document.getElementById('tool-nav');
-const narrowLayout = window.matchMedia('(max-width: 900px)');
+const narrowLayout = window.matchMedia('(max-width: 950px)');
 
 function toggleMenu(open) {
   menuToggle.setAttribute('aria-expanded', String(open));
@@ -35,6 +35,19 @@ const searchStatus = document.getElementById('search-status');
 const searchLinks = document.getElementById('search-links');
 const tools = [...toolNav.querySelectorAll('a')];
 
+function markCurrentSection() {
+  const current = window.location.hash === '#listing-generator' ? '#listing-generator' : '#dashboard';
+  for (const link of tools) {
+    if (link.getAttribute('href') === current) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  }
+}
+
+if (window.location) {
+  markCurrentSection();
+  window.addEventListener('hashchange', markCurrentSection);
+}
+
 function closeSearch() {
   query.value = '';
   updateSearch();
@@ -55,6 +68,7 @@ function updateSearch() {
     const item = document.createElement('li');
     const result = link.cloneNode(true);
     result.removeAttribute('class');
+    result.removeAttribute('aria-current');
     item.append(result);
     searchLinks.append(item);
   }

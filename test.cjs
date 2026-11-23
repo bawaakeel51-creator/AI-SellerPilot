@@ -16,6 +16,29 @@ test('invalid calculator inputs clear results',()=>{for(const values of [{price:
 test('calculator CSV recomputes latest edited values',()=>{const {ctx,latest}=calculator();ctx.nodes.price.value='1200';ctx.nodes.csv.onclick();assert.equal(latest().profit,558);assert.ok(ctx.downloads[0].parts[0].includes('"profit","558"'));});
 test('zero price and maximum return probability remain finite',()=>{const {latest}=calculator({price:0,returnRate:100});assert.equal(latest().margin,0);assert.equal(latest().profit,-737);});
 test('listing form lifecycle prevents stale exports and renders HTML as text',()=>{const ctx=dom();vm.createContext(ctx);vm.runInContext(fs.readFileSync(require.resolve('./listing.js'),'utf8'),ctx);for(const [key,value] of Object.entries(base))ctx.document.getElementById(key).value=String(value);ctx.nodes.confirmed.checked=true;ctx.nodes['listing-form'].events.submit({preventDefault(){}});assert.equal(ctx.nodes.csv.disabled,false);ctx.nodes.csv.onclick();assert.equal(ctx.downloads.length,1);ctx.nodes['listing-form'].events.input();assert.equal(ctx.nodes.csv.disabled,true);ctx.nodes.csv.onclick();assert.equal(ctx.downloads.length,1);ctx.nodes.name.value='<img src=x onerror=alert(1)>';ctx.nodes['listing-form'].events.submit({preventDefault(){}});assert.ok(ctx.nodes.result.textContent.includes('<img'));assert.equal(ctx.nodes.result.innerHTML,'');ctx.nodes['listing-form'].events.reset();assert.equal(ctx.nodes.txt.disabled,true);});
+test('structured listing preview renders product facts as text and clears on edits',()=>{
+ const ctx=dom();
+ const list=ctx.document.getElementById('draft-bullets');
+ list.children=[];
+ list.replaceChildren=function(){this.children=[];};
+ list.append=function(item){this.children.push(item);};
+ vm.runInNewContext(fs.readFileSync('listing.js','utf8'),ctx);
+ const input={market:'Amazon India',name:'<img src=x>',category:'Home & Kitchen',quantity:'2',confirmed:true};
+ for(const [id,value] of Object.entries(input)) ctx.document.getElementById(id).value=String(value);
+ ctx.nodes.confirmed.checked=true;
+ ctx.nodes['listing-form'].events.submit({preventDefault(){}});
+ assert.equal(ctx.nodes['draft-preview'].hidden,false);
+ assert.equal(ctx.nodes['draft-placeholder'].hidden,true);
+ assert.equal(ctx.nodes['draft-title'].textContent,'<img src=x> | Pack of 2');
+ assert.equal(ctx.nodes['draft-title'].innerHTML,'');
+ assert.equal(list.children[0].textContent,'Pack quantity: 2');
+ assert.equal(ctx.nodes['draft-category'].textContent,'Home & Kitchen');
+ ctx.nodes['listing-form'].events.input();
+ assert.equal(ctx.nodes['draft-preview'].hidden,true);
+ assert.equal(ctx.nodes['draft-placeholder'].hidden,false);
+ assert.equal(ctx.nodes.csv.disabled,true);
+ assert.deepEqual(list.children,[]);
+});
 test('dashboard preserves Listing Studio controls and links to existing tools',()=>{
  const html=fs.readFileSync('listing.html','utf8');
  for(const page of ['index.html','workspace.html','research.html']) assert.ok(html.includes('href="'+page+'"'));

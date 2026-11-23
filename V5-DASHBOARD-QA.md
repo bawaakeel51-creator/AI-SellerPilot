@@ -5,10 +5,11 @@ The white and lavender redesign applies to the existing Listing Studio at `listi
 ## Verification
 
 - Reviewed draft #17 at `447cb820cb167974aef4ab7437b218e71309a5ac`, #19 at `1079e68e941ad0877dd38eb2f38bf65f646bfc79` and #20 at `6d1d74df9554ae3fdb268a7409b55164b9392259`, based on `main` at `29a845bbcc324d129a047d93abf9eb477450147e`.
-- Main-based redesign suite passed 89 tests. Combined source with #17, #19 and #20 passed 116 tests. The pack-of-2 title is emitted once, the quantity remains a single factual bullet, and the corrected title appears in both exports.
-- Static and simulated DOM checks cover preserved form controls, local tool links, mobile disclosure, keyboard handling, and private Studio asset packaging. The cloud browser reported “Site Unavailable” on the private preview. Actual rendered desktop and mobile review remains pending at 1440, 1280, 768, 375 and 320 CSS pixels.
-- The owner's earlier public Listing Studio downloads passed. Repeat the two browser downloads on the combined candidate as a final smoke test. Research/Evidence visual, keyboard and actual browser backup-import checks remain pending. See the browser acceptance checklist in `V5-AUDIT.md` on #19.
-- Before approval, verify no horizontal overflow, visible keyboard focus, mobile menu, search, blank-name validation, form and draft columns, exact duplicate-pack example, both downloads, and AI disclosure. Smoke-test calculator, Research and Evidence links. Cover older supported mobile Chrome and Edge or Firefox where available. Use synthetic fixtures and a fresh browser profile.
+- Premium correction compared real renders against the selected white-purple reference and the previous #21 screenshot. The second pass compacted the hero, chart and form, aligned the panels and actions, and reduced background intensity on narrow screens. The structured draft shows separate, read-only sections without changing TXT or CSV serialization.
+- Chromium 153 rendered the combined candidate at 1440, 1280, 768, 375 and 320 CSS pixels. All five had no horizontal overflow, desktop showed two columns, tablet and mobile stacked the flow, and the sample kept one factual bullet and no repeated pack wording.
+- Browser checks covered the skip link, local tool search, narrow navigation disclosure, and actual TXT and CSV downloads. Both downloaded files matched the generated studio record. Public Gemini stayed hidden. Layout checks used Chromium viewport emulation and desktop full-page captures.
+- The branch suite passed 90 tests. The combined candidate with #17, #19 and #20 passed 117 tests. Checks include generated content rendered as text, stale export invalidation and private Studio asset packaging.
+- Device-specific Safari, Firefox and Android review remains separate from the Chromium acceptance. Research and Evidence browser backup-import verification remains open. See the browser acceptance checklist in `V5-AUDIT.md` on #19. Owner visual approval is still required.
 
 ## Integration and rollback
 
