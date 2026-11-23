@@ -93,8 +93,15 @@ test('private studio build keeps AI on its own origin and preserves public tools
   const html = fs.readFileSync('backend/public/studio/index.html', 'utf8');
   assert.match(html, /connect-src 'self'/);
   assert.match(html, /Private AI preview/);
+  assert.match(html, /id="account-status"/);
+  assert.match(html, /id="signout"/);
+  assert.doesNotMatch(html, /Public Gemini AI is OFF/);
   assert.match(html, /Do not enter confidential or personal data/);
   for (const page of ['index.html','workspace.html','research.html']) assert.ok(html.includes('https://bawaakeel51-creator.github.io/AI-SellerPilot/'+page));
+  for (const asset of ['listing-dashboard.js', 'listing-dashboard.css']) {
+    assert.ok(html.includes(asset));
+    assert.deepEqual(fs.readFileSync('backend/public/studio/' + asset), fs.readFileSync(asset));
+  }
   assert.match(fs.readFileSync('backend/public/studio/ai-config.js', 'utf8'), /window.location.origin/);
   assert.match(fs.readFileSync('ai-config.js','utf8'), /apiUrl: ''/);
 });
