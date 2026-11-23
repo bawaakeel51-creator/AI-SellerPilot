@@ -2,7 +2,7 @@
 (function () {
 'use strict';
 const markets = {
- 'Amazon India': 'Review title, five feature bullets and search terms against your category requirements.',
+ 'Amazon India': 'Review the title, feature bullets and search terms against your category requirements.',
  'Flipkart': 'Review the draft alongside category attributes and specifications in Seller Hub.',
  'Meesho': 'Review product name, description and mandatory catalogue attributes in the Supplier Panel.'
 };
@@ -77,11 +77,48 @@ async function requestAi(input, apiUrl, fetchImpl) {
 if(typeof module!=='undefined')module.exports={buildDraft,toTXT,toCSV,csvCell,toApiRequest,fromApiResponse,requestAi};
 if(typeof document==='undefined')return;
 const $ = id=>document.getElementById(id);let draft=null;let revision=0;
-function invalidate(message='Inputs changed. Generate a fresh draft.'){revision++;draft=null;$('txt').disabled=$('csv').disabled=true;$('result').textContent='Your draft will appear here.';$('counts').textContent='';$('status').textContent=message;}
+function renderDraftPreview(current, category='') {
+ const preview=$('draft-preview'), placeholder=$('draft-placeholder');
+ if (!preview || !placeholder) return;
+ preview.hidden = !current;
+ placeholder.hidden = Boolean(current);
+ const bullets=$('draft-bullets');
+ if (!bullets?.replaceChildren) return;
+ bullets.replaceChildren();
+ if (!current) return;
+ $('draft-market').textContent=current.market;
+ $('draft-category-row').hidden=!category;
+ $('draft-category').textContent=category;
+ $('draft-title').textContent=current.title;
+ for (const text of current.bullets) {
+  const bullet=document.createElement('li');
+  bullet.textContent=text;
+  bullets.append(bullet);
+ }
+ $('draft-no-bullets').hidden=Boolean(current.bullets.length);
+ $('draft-description').textContent=current.description;
+ $('draft-keywords').textContent=current.keywords;
+}
+function invalidate(message='Inputs changed. Generate a fresh draft.'){revision++;draft=null;$('txt').disabled=$('csv').disabled=true;$('result').textContent='Your draft will appear here.';renderDraftPreview(null);$('counts').textContent='';$('status').textContent=message;}
 $('listing-form').addEventListener('input',()=>invalidate());
 $('market').addEventListener('change',()=>{invalidate();$('guidance').textContent=markets[$('market').value];});
 $('listing-form').addEventListener('reset',()=>{invalidate('Form cleared.');$('guidance').textContent=markets['Amazon India'];});
-$('listing-form').addEventListener('submit',event=>{event.preventDefault();revision++;try{const input=Object.fromEntries(['market',...Object.keys(limits),'quantity'].map(id=>[id,$(id).value]));input.confirmed=$('confirmed').checked;draft=buildDraft(input);$('result').textContent=toTXT(draft);$('guidance').textContent=markets[draft.market];$('counts').textContent=`Title: ${draft.title.length}/180 characters · ${draft.bullets.length} bullets · Keywords: ${new TextEncoder().encode(draft.keywords).length} UTF-8 bytes`;$('txt').disabled=$('csv').disabled=false;$('status').textContent='Draft ready. Check every claim before publishing.';}catch(error){invalidate(error.message);}});
+$('listing-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ revision++;
+ try {
+  const input=Object.fromEntries(['market',...Object.keys(limits),'quantity'].map(id=>[id,$(id).value]));
+  input.confirmed=$('confirmed').checked;
+  draft=buildDraft(input);
+  $('result').textContent=toTXT(draft);
+  renderDraftPreview(draft, clean(input.category));
+  $('guidance').textContent=markets[draft.market];
+  const bulletCount=draft.bullets.length;
+  $('counts').textContent=`Title: ${draft.title.length}/180 characters · ${bulletCount} ${bulletCount===1?'bullet':'bullets'} · Keywords: ${new TextEncoder().encode(draft.keywords).length} UTF-8 bytes`;
+  $('txt').disabled=$('csv').disabled=false;
+  $('status').textContent='Draft ready. Check every claim before publishing.';
+ } catch(error) {invalidate(error.message);}
+});
 function download(kind){if(!draft)return;const url=URL.createObjectURL(new Blob([kind==='csv'?toCSV(draft):toTXT(draft)],{type:kind==='csv'?'text/csv;charset=utf-8':'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`sellerpilot-${draft.market.toLowerCase().replaceAll(' ','-')}-listing.${kind}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('txt').onclick=()=>download('txt');$('csv').onclick=()=>download('csv');
 const aiUrl = (typeof window!=='undefined' && window.SELLERPILOT_AI && window.SELLERPILOT_AI.apiUrl) || '';
